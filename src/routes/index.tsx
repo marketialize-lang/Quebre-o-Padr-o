@@ -40,6 +40,7 @@ function Index() {
     let lastActivity = performance.now();
     let magnetX = stage.clientWidth / 2;
     let magnetStrength = 0;
+    let rulerSweep: Animation | null = null;
     let touchPointer: { x: number; y: number } | null = null;
     const moveRulerPointer = (event: PointerEvent) => {
       pointer = { x: event.clientX, y: event.clientY };
@@ -58,8 +59,8 @@ function Index() {
     };
 
     if (rulerMark && rulerTag && ruler) {
-      rulerMark.style.transform = "translateX(0px)";
-      rulerTag.textContent = `X ${String(Math.round(ruler.clientWidth / 2)).padStart(4, "0")}`;
+      rulerMark.style.left = "18%";
+      rulerTag.textContent = `X ${String(Math.round(ruler.clientWidth * 0.18)).padStart(4, "0")}`;
     }
 
     const animate = (time: number) => {
@@ -101,15 +102,30 @@ function Index() {
       if (ruler && rulerMark && rulerTag) {
         const stageRect = stage.getBoundingClientRect();
         const rulerRect = ruler.getBoundingClientRect();
-        if (idle && !paused) {
-          magnetX = stage.clientWidth * (0.18 + pilot * 0.62);
-        } else if (!idle) {
-          magnetX = pointer.x - stageRect.left;
+        if (idle && !paused && !reducedMotion) {
+          if (!rulerSweep) {
+            const currentX = rulerMark.getBoundingClientRect().left - rulerRect.left;
+            const from = Math.max(0, Math.min(100, (currentX / Math.max(1, rulerRect.width)) * 100));
+            const to = from < 50 ? 82 : 18;
+            rulerSweep = rulerMark.animate(
+              [{ left: `${from}%` }, { left: `${to}%` }],
+              { duration: 1600, easing: "ease-in-out", direction: "alternate", iterations: Infinity },
+            );
+          } else {
+            rulerSweep.play();
+          }
+        } else {
+          rulerSweep?.cancel();
+          rulerSweep = null;
+          if (!paused) {
+            const pointerX = pointer.x - rulerRect.left;
+            const rulerX = Math.max(0, Math.min(rulerRect.width - 1, pointerX));
+            rulerMark.style.left = `${rulerX}px`;
+          }
         }
-        const rulerX = Math.max(0, Math.min(rulerRect.width - 1, magnetX + stageRect.left - rulerRect.left));
         rulerMark.style.opacity = "1";
-        rulerMark.style.transform = `translateX(${rulerX - rulerRect.width / 2}px)`;
-        rulerTag.textContent = `X ${String(Math.round(rulerX)).padStart(4, "0")}`;
+        const liveX = Math.max(0, Math.min(rulerRect.width - 1, rulerMark.getBoundingClientRect().left - rulerRect.left));
+        rulerTag.textContent = `X ${String(Math.round(liveX)).padStart(4, "0")}`;
       }
       frame = requestAnimationFrame(animate);
     };
@@ -124,6 +140,7 @@ function Index() {
       stage.removeEventListener("pointerdown", movePointer);
       ruler?.removeEventListener("pointermove", moveRulerPointer);
       ruler?.removeEventListener("pointerdown", moveRulerPointer);
+      rulerSweep?.cancel();
       cancelAnimationFrame(frame);
     };
   }, [paused]);
@@ -229,7 +246,7 @@ function Index() {
               </div>
 
               <div className="hero-tools" ref={rulerRef}>
-                <span className="hero-ruler-mark" ref={rulerMarkRef} style={{ left: "50%" }} aria-hidden="true"><b ref={rulerTagRef}>X 0000</b></span>
+                <span className="hero-ruler-mark" ref={rulerMarkRef} style={{ left: "18%" }} aria-hidden="true"><b ref={rulerTagRef}>X 0000</b></span>
                 <span className="tool-caption">MOVA O CURSOR SOBRE AS LETRAS</span>
                 <div className="tool-buttons">
                   <button type="button" onClick={shuffleLetters} aria-label="Embaralhar as letras">
