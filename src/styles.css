@@ -42,8 +42,10 @@ button { -webkit-tap-highlight-color: transparent; }
 .hero-kicker { display: flex; align-items: center; gap: 10px; margin-bottom: clamp(18px, 3vh, 32px); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; font-weight: 700; letter-spacing: .1em; }
 .hero-kicker span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 5px rgba(255,59,31,.12); }
 .hero-stage { position: relative; z-index: 0; padding: 10px 0 18px; touch-action: pan-y; }
-.ghost-word { position: absolute; z-index: -1; top: 42%; left: -.06em; color: transparent; -webkit-text-stroke: 1px rgba(17,17,17,.12); font-size: clamp(100px, 17vw, 270px); font-weight: 900; letter-spacing: -.09em; line-height: .8; white-space: nowrap; pointer-events: none; user-select: none; animation: ghost-drift 45s linear infinite alternate; }
-@keyframes ghost-drift { to { transform: translateX(-8%); } }
+.ghost-word { position: absolute; z-index: -1; top: 42%; left: 0; width: 100%; overflow: hidden; color: transparent; -webkit-text-stroke: 1px rgba(17,17,17,.12); font-size: clamp(100px, 17vw, 270px); font-weight: 900; letter-spacing: -.09em; line-height: .8; pointer-events: none; user-select: none; }
+.ghost-track { display: flex; width: max-content; animation: ghost-marquee 54s linear infinite; will-change: transform; }
+.ghost-track span { display: block; flex: none; padding-right: .12em; white-space: nowrap; }
+@keyframes ghost-marquee { to { transform: translate3d(-50%, 0, 0); } }
 .hero-title { position: relative; z-index: 1; margin: 0; font-size: clamp(64px, 8.45vw, 138px); font-weight: 850; letter-spacing: -.09em; line-height: .76; text-transform: uppercase; }
 .title-line { display: block; white-space: nowrap; }
 .title-line.serif { padding: .08em 0 .1em .46em; font-family: Georgia, "Times New Roman", serif; font-size: .92em; font-weight: 400; font-style: italic; letter-spacing: -.095em; text-transform: none; }
@@ -126,6 +128,7 @@ button { -webkit-tap-highlight-color: transparent; }
   .tool-caption { max-width: 104px; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .ghost-track { animation: none; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .magnetic-letter { transform: none !important; }
 }

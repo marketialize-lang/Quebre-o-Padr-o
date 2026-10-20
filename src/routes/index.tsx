@@ -107,7 +107,12 @@ function Index() {
             <div className="hero-copy-column">
               <div className="hero-kicker"><span /> RAFAEL FONSECA · DESIGNER DIGITAL</div>
               <div className="hero-stage" ref={stageRef}>
-                <div className="ghost-word" aria-hidden="true">PADRÃO</div>
+                <div className="ghost-word" aria-hidden="true">
+                  <div className="ghost-track">
+                    <span>QUEBRE O PADRÃO · QUEBRE O PADRÃO · </span>
+                    <span>QUEBRE O PADRÃO · QUEBRE O PADRÃO · </span>
+                  </div>
+                </div>
                 <div className="magnetic-field" aria-hidden="true"><i /><i /><i /></div>
                 <h1 className="hero-title" id="hero-title" key={shuffleKey}>
                   {headlineLines.map((line, lineIndex) => (
