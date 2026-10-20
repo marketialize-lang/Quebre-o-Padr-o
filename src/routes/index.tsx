@@ -60,7 +60,6 @@ function Index() {
     if (rulerMark && rulerTag && ruler) {
       const initialX = Math.round(ruler.clientWidth / 2);
       rulerMark.style.transform = `translateX(${initialX}px)`;
-      rulerMark.style.opacity = "0";
       rulerTag.textContent = `X ${String(initialX).padStart(4, "0")}`;
     }
 
