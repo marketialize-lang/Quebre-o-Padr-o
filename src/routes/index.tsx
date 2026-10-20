@@ -104,7 +104,7 @@ function Index() {
         const stageRect = stage.getBoundingClientRect();
         const rulerRect = ruler.getBoundingClientRect();
         const rulerX = Math.max(0, Math.min(rulerRect.width - 1, magnetX + stageRect.left - rulerRect.left));
-        rulerMark.style.opacity = !paused && !reducedMotion ? `${magnetStrength}` : "0";
+        rulerMark.style.opacity = !paused && !reducedMotion ? (idle ? "1" : `${magnetStrength}`) : "0";
         rulerMark.style.transform = `translateX(${rulerX}px)`;
         if (magnetStrength > 0) rulerTag.textContent = `X ${String(Math.round(rulerX)).padStart(4, "0")}`;
       }
