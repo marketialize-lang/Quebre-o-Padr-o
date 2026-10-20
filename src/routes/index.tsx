@@ -151,7 +151,7 @@ function Index() {
             </div>
 
             <figure className="portrait-wrap">
-              <img src="/rafael-fonseca-hero.png" alt="Retrato de Rafael Fonseca com óculos escuros diante de um fundo vermelho e laranja" className="portrait" />
+              <img src="/rafael-fonseca-hero.jpg" alt="Retrato de Rafael Fonseca com óculos escuros diante de um fundo vermelho e laranja" className="portrait" />
               <div className="portrait-overlay" aria-hidden="true" />
               <figcaption className="portrait-caption"><span>01 / 04</span><span>QUEBRE O PADRÃO</span></figcaption>
               <span className="portrait-index" aria-hidden="true">RF—01</span>
