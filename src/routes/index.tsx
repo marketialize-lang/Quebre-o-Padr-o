@@ -66,7 +66,7 @@ function Index() {
 
     const animate = (time: number) => {
       const idle = time - lastActivity > 1300;
-      if (idle && !paused && !reducedMotion) {
+      if (idle && !paused) {
         pilot = (Math.sin(time / 1800) + 1) / 2;
       }
 
@@ -103,10 +103,15 @@ function Index() {
       if (ruler && rulerMark && rulerTag) {
         const stageRect = stage.getBoundingClientRect();
         const rulerRect = ruler.getBoundingClientRect();
+        if (idle && !paused) {
+          magnetX = stage.clientWidth * (0.18 + pilot * 0.62);
+        } else if (!idle) {
+          magnetX = pointer.x - stageRect.left;
+        }
         const rulerX = Math.max(0, Math.min(rulerRect.width - 1, magnetX + stageRect.left - rulerRect.left));
-        rulerMark.style.opacity = !paused && !reducedMotion ? (idle ? "1" : `${magnetStrength}`) : "0";
+        rulerMark.style.opacity = "1";
         rulerMark.style.transform = `translateX(${rulerX}px)`;
-        if (magnetStrength > 0) rulerTag.textContent = `X ${String(Math.round(rulerX)).padStart(4, "0")}`;
+        rulerTag.textContent = `X ${String(Math.round(rulerX)).padStart(4, "0")}`;
       }
       frame = requestAnimationFrame(animate);
     };

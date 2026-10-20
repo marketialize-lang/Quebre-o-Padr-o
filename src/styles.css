@@ -59,7 +59,7 @@ button { -webkit-tap-highlight-color: transparent; }
 @keyframes seal-turn { to { transform: rotate(360deg); } }
 .hero-tools { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 58px; margin-top: 4px; padding-top: 12px; border-top: 1px solid rgba(17,17,17,.32); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .hero-tools::before { position: absolute; top: 0; right: 0; left: 0; height: 10px; background: repeating-linear-gradient(90deg, rgba(17,17,17,.65) 0 1px, transparent 1px 8px) 0 0 / 100% 4px no-repeat, repeating-linear-gradient(90deg, rgba(17,17,17,.8) 0 1px, transparent 1px 80px) 0 0 / 100% 9px no-repeat; opacity: .45; content: ""; pointer-events: none; }
-.hero-ruler-mark { position: absolute; z-index: 3; top: -1px; left: 0; width: 1.5px; height: 20px; background: var(--accent); opacity: 0; pointer-events: none; will-change: transform; transition: opacity .18s ease; }
+.hero-ruler-mark { position: absolute; z-index: 3; top: -1px; left: 0; width: 1.5px; height: 20px; background: var(--accent); opacity: 1; pointer-events: none; will-change: transform; transition: opacity .18s ease; }
 .hero-ruler-mark b { position: absolute; bottom: calc(100% + 1px); left: 6px; padding: 3px 5px 2px; border-radius: 2px; color: var(--ink); background: var(--accent); font: 700 9.5px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; white-space: nowrap; }
 .tool-caption { color: var(--muted); font-size: 9px; letter-spacing: .08em; }
 .tool-buttons { display: flex; gap: 7px; }
