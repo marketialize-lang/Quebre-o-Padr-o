@@ -36,26 +36,17 @@ function Index() {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const letterStates = letters.map(() => ({ x: 0, y: 0, rotation: 0, scale: 1, hot: 0, vx: 0, vy: 0, vr: 0, vs: 0, vh: 0 }));
     let frame = 0;
-    let pointer = { x: -1000, y: -1000, active: false };
+    let pointer: { x: number; y: number } | null = null;
     let touchPointer: { x: number; y: number } | null = null;
     let lastActivity = performance.now();
     let lastFrame = lastActivity;
     let pilotTime = 0;
-    const initialStageRect = stage.getBoundingClientRect();
-    let magnetX = initialStageRect.width / 2;
-    let magnetY = initialStageRect.height / 2;
+    let magnetX = 0;
+    let magnetY = 0;
     let magnetStrength = 0;
-    const initialRulerRect = ruler?.getBoundingClientRect();
-    const initialMarkX = initialRulerRect ? Math.round(initialRulerRect.width * 0.18) : 0;
-
-    if (rulerMark && rulerTag) {
-      rulerMark.style.left = `${initialMarkX}px`;
-      rulerMark.style.opacity = "1";
-      rulerTag.textContent = `X ${String(initialMarkX).padStart(4, "0")}`;
-    }
 
     const movePointer = (event: PointerEvent) => {
-      pointer = { x: event.clientX, y: event.clientY, active: true };
+      pointer = { x: event.clientX, y: event.clientY };
       touchPointer = event.pointerType === "touch" ? pointer : null;
       lastActivity = performance.now();
     };
@@ -64,72 +55,72 @@ function Index() {
       const dt = Math.min(0.05, Math.max(0.001, (time - lastFrame) / 1000));
       lastFrame = time;
       const stageRect = stage.getBoundingClientRect();
+      const rulerRect = ruler?.getBoundingClientRect();
       const fontSize = Number.parseFloat(getComputedStyle(stage).fontSize) || 100;
       const radius = Math.max(90, fontSize * 1.5);
-      const now = time;
-      const idle = now - lastActivity > 1500;
-
+      const idle = time - lastActivity > 1400;
       let targetX = magnetX;
       let targetY = magnetY;
       let want = 0;
 
       if (!paused && !reducedMotion) {
-        if (touchPointer && now - lastActivity < 2600) {
-          targetX = touchPointer.x - stageRect.left;
-          targetY = touchPointer.y - stageRect.top;
-          want = 1;
-        } else if (pointer.active && now - lastActivity < 2600) {
-          targetX = pointer.x - stageRect.left;
-          targetY = pointer.y - stageRect.top;
-          const within = targetX >= -radius && targetX <= stageRect.width + radius && targetY >= -radius && targetY <= stageRect.height + radius;
-          want = within ? Math.max(0.45, 1 - Math.max(0, Math.min(targetX, stageRect.width - targetX, targetY, stageRect.height - targetY)) / (radius * 2)) : 0;
-        } else if (idle) {
-          pilotTime += dt;
-          const count = Math.max(2, letters.length);
-          const position = (pilotTime * 2.8) % (2 * count - 2);
+        const recentPointer = pointer && time - lastActivity < 2400 ? (touchPointer ?? pointer) : null;
+        if (recentPointer) {
+          targetX = recentPointer.x - stageRect.left;
+          targetY = recentPointer.y - stageRect.top;
+          const inside = targetX > -radius && targetX < stageRect.width + radius && targetY > -radius && targetY < stageRect.height + radius;
+          if (inside) want = 1;
+        } else if (idle && letters.length > 0) {
+          pilotTime += dt * 1.35;
+          const count = letters.length;
+          const position = pilotTime % (2 * count - 2);
           const index = position <= count - 1 ? position : 2 * count - 2 - position;
-          const letterRect = letters[Math.round(index)]?.getBoundingClientRect();
-          targetX = letterRect ? letterRect.left - stageRect.left + letterRect.width / 2 : stageRect.width * (0.18 + (Math.sin(pilotTime * 0.55) + 1) * 0.31);
-          targetY = letterRect ? letterRect.top - stageRect.top + letterRect.height / 2 : stageRect.height * 0.48;
-          targetY += Math.sin(pilotTime * 2.1) * fontSize * 0.12;
-          want = 0.86;
+          const current = letters[Math.round(index)]?.getBoundingClientRect();
+          if (current) {
+            targetX = current.left - stageRect.left + current.width / 2;
+            targetY = current.top - stageRect.top + current.height / 2 + Math.sin(pilotTime * 1.05) * fontSize * 0.12;
+            want = 0.9;
+          }
         }
       }
 
       const near = want > 0;
-      const magnetEase = 1 - Math.exp(-dt * (near ? 18 : 6));
-      magnetX += (targetX - magnetX) * magnetEase;
-      magnetY += (targetY - magnetY) * magnetEase;
+      const ease = 1 - Math.exp(-dt * (near ? 18 : 6));
+      magnetX += (targetX - magnetX) * ease;
+      magnetY += (targetY - magnetY) * ease;
       magnetStrength += (want - magnetStrength) * (1 - Math.exp(-dt * (want > magnetStrength ? 5 : 2.6)));
       if (magnetStrength < 0.002 && want === 0) magnetStrength = 0;
 
       letters.forEach((letter, index) => {
         const state = letterStates[index];
         const rect = letter.getBoundingClientRect();
-        const cx = rect.left - stageRect.left + rect.width / 2;
-        const cy = rect.top - stageRect.top + rect.height / 2;
-        const dx = cx - magnetX;
-        const dy = cy - magnetY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        const dx = rect.left - stageRect.left + rect.width / 2 - magnetX;
+        const dy = rect.top - stageRect.top + rect.height / 2 - magnetY;
+        const distance = Math.hypot(dx, dy);
         const t = Math.max(0, 1 - distance / radius);
         const influence = t * t * (3 - 2 * t) * magnetStrength;
         const direction = distance > 0.001 ? 1 / distance : 0;
         const force = fontSize * 0.2;
-        const gx = dx * direction * force * influence;
-        const gy = dy * direction * force * influence * 0.72;
-        const gr = Math.max(-30, Math.min(30, (dx / radius) * 30 * influence));
-        const gs = 1 + 0.34 * influence;
-        const gh = influence;
-        const spring = (value: number, velocity: number, goal: number, damping: number) => {
-          const acceleration = (goal - value) * 190 - damping * velocity;
-          const nextVelocity = velocity + acceleration * dt;
-          return [value + nextVelocity * dt, nextVelocity] as const;
-        };
-        const [x, vx] = spring(state.x, state.vx, gx, index === 0 ? 22 : 15);
-        const [y, vy] = spring(state.y, state.vy, gy, index === 0 ? 22 : 15);
-        const [rotation, vr] = spring(state.rotation, state.vr, gr, index === 0 ? 22 : 15);
-        const [scale, vs] = spring(state.scale, state.vs, gs, index === 0 ? 22 : 15);
-        const [hot, vh] = spring(state.hot, state.vh, gh, index === 0 ? 22 : 15);
+        const goals = [
+          dx * direction * force * influence,
+          dy * direction * force * influence * 0.72,
+          Math.max(-30, Math.min(30, dx / radius * 30 * influence)),
+          1 + 0.34 * influence,
+          influence,
+        ];
+        const values = [state.x, state.y, state.rotation, state.scale, state.hot];
+        const velocities = [state.vx, state.vy, state.vr, state.vs, state.vh];
+        const damping = index === 0 ? 22 : 15;
+        const nextValues: number[] = [];
+        const nextVelocities: number[] = [];
+        for (let i = 0; i < goals.length; i++) {
+          const acceleration = (goals[i] - values[i]) * 190 - damping * velocities[i];
+          const velocity = velocities[i] + acceleration * dt;
+          nextValues.push(values[i] + velocity * dt);
+          nextVelocities.push(velocity);
+        }
+        const [x, y, rotation, scale, hot] = nextValues;
+        const [vx, vy, vr, vs, vh] = nextVelocities;
         Object.assign(state, { x, y, rotation, scale, hot, vx, vy, vr, vs, vh });
         letter.style.setProperty("--shift-x", `${x}px`);
         letter.style.setProperty("--shift-y", `${y}px`);
@@ -138,11 +129,10 @@ function Index() {
         letter.style.setProperty("--hot", `${Math.max(0, Math.min(1, hot))}`);
       });
 
-      if (ruler && rulerMark && rulerTag) {
-        const rulerRect = ruler.getBoundingClientRect();
+      if (ruler && rulerMark && rulerTag && rulerRect) {
         const rulerX = Math.max(0, Math.min(rulerRect.width - 1, magnetX));
         rulerMark.style.left = `${rulerX}px`;
-        rulerMark.style.opacity = String(Math.max(0.3, Math.min(1, magnetStrength)));
+        rulerMark.style.opacity = String(Math.max(0.25, Math.min(1, magnetStrength)));
         rulerTag.textContent = `X ${String(Math.round(rulerX)).padStart(4, "0")}`;
       }
 
