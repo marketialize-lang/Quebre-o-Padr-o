@@ -58,9 +58,8 @@ function Index() {
     };
 
     if (rulerMark && rulerTag && ruler) {
-      const initialX = Math.round(ruler.clientWidth / 2);
-      rulerMark.style.transform = `translateX(${initialX}px)`;
-      rulerTag.textContent = `X ${String(initialX).padStart(4, "0")}`;
+      rulerMark.style.transform = "translateX(0px)";
+      rulerTag.textContent = `X ${String(Math.round(ruler.clientWidth / 2)).padStart(4, "0")}`;
     }
 
     const animate = (time: number) => {
@@ -109,7 +108,7 @@ function Index() {
         }
         const rulerX = Math.max(0, Math.min(rulerRect.width - 1, magnetX + stageRect.left - rulerRect.left));
         rulerMark.style.opacity = "1";
-        rulerMark.style.transform = `translateX(${rulerX}px)`;
+        rulerMark.style.transform = `translateX(${rulerX - rulerRect.width / 2}px)`;
         rulerTag.textContent = `X ${String(Math.round(rulerX)).padStart(4, "0")}`;
       }
       frame = requestAnimationFrame(animate);
@@ -230,7 +229,7 @@ function Index() {
               </div>
 
               <div className="hero-tools" ref={rulerRef}>
-                <span className="hero-ruler-mark" ref={rulerMarkRef} aria-hidden="true"><b ref={rulerTagRef}>X 0000</b></span>
+                <span className="hero-ruler-mark" ref={rulerMarkRef} style={{ left: "50%" }} aria-hidden="true"><b ref={rulerTagRef}>X 0000</b></span>
                 <span className="tool-caption">MOVA O CURSOR SOBRE AS LETRAS</span>
                 <div className="tool-buttons">
                   <button type="button" onClick={shuffleLetters} aria-label="Embaralhar as letras">
