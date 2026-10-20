@@ -180,7 +180,10 @@ function Index() {
           <div className="credibility-layout">
             <div className="credibility-copy">
               <p className="credibility-kicker"><span /> O PADRÃO QUE VALE A PENA QUEBRAR</p>
-              <h2 id="credibility-title">Um site genérico pode fazer um bom negócio parecer igual a todos.</h2>
+              <h2 id="credibility-title">
+                <span className="credibility-heading-desktop">Um site genérico pode<br />fazer um bom negócio<br />parecer igual a todos.</span>
+                <span className="credibility-heading-mobile">Seu negócio merece<br />uma página própria.</span>
+              </h2>
               <p className="credibility-body">
                 Alguém recebe seu nome por indicação, encontra um anúncio ou visita seu perfil. Antes de chamar, pode procurar mais informações sobre o que você faz. Se a página é confusa, desatualizada ou poderia pertencer a qualquer empresa, fica mais difícil perceber o cuidado por trás do seu trabalho.
               </p>
