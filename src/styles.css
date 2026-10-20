@@ -112,7 +112,7 @@ button { -webkit-tap-highlight-color: transparent; }
   .hero-bottom { display: contents; }
   .primary-cta { order: 5; width: 100%; min-height: 54px; margin-top: -5px; }
   .portrait-wrap { order: 3; min-height: 0; height: clamp(240px, 43svh, 390px); }
-  .portrait { object-position: center 37%; }
+  .portrait { object-position: center 5%; }
   .portrait-index { top: 10px; right: 10px; }
   .portrait-caption { right: 12px; bottom: 11px; left: 12px; font-size: 8px; }
   .hero-footer { min-height: 34px; padding-top: 10px; font-size: 8px; }
