@@ -170,7 +170,44 @@ function Index() {
           </footer>
         </div>
       </section>
-      <div id="portfolio" className="next-section-marker" aria-label="Portfólio em construção" />
+      <section className="credibility-section" aria-labelledby="credibility-title">
+        <div className="credibility-shell">
+          <div className="credibility-topline">
+            <span>02 / A PRESENÇA ANTES DA CONVERSA</span>
+            <span>QUEBRE O PADRÃO · RAFAEL FONSECA</span>
+          </div>
+
+          <div className="credibility-layout">
+            <div className="credibility-copy">
+              <p className="credibility-kicker"><span /> O PADRÃO QUE VALE A PENA QUEBRAR</p>
+              <h2 id="credibility-title">Um site genérico pode fazer um bom negócio parecer igual a todos.</h2>
+              <p className="credibility-body">
+                Alguém recebe seu nome por indicação, encontra um anúncio ou visita seu perfil. Antes de chamar, pode procurar mais informações sobre o que você faz. Se a página é confusa, desatualizada ou poderia pertencer a qualquer empresa, fica mais difícil perceber o cuidado por trás do seu trabalho.
+              </p>
+              <div className="credibility-takeaway">
+                <span>UMA PÁGINA COM INTENÇÃO</span>
+                <p>Organiza a mensagem, mostra o que você oferece e deixa o próximo passo claro.</p>
+              </div>
+            </div>
+
+            <aside className="credibility-proof" aria-label="Dado de pesquisa sobre confiança em empresas com site">
+              <div className="proof-label"><span>UM DADO SOBRE CREDIBILIDADE</span><span>01 — PESQUISA</span></div>
+              <div className="proof-number">66<span>%</span></div>
+              <p className="proof-copy">dos consumidores pesquisados concordaram que uma empresa com site próprio parece mais confiável do que uma empresa sem site.</p>
+              <div className="proof-source">
+                <span>Pesquisa encomendada pela Verisign à 451 Research, com 5.450 consumidores. O levantamento mediu percepção, não aumento de vendas.</span>
+                <a href="https://www.verisign.com/assets/Websites_BrandedEmail_Key_SMB_Internet_Services.pdf" target="_blank" rel="noreferrer">CONSULTAR A FONTE <ArrowRight size={14} aria-hidden="true" /></a>
+              </div>
+            </aside>
+          </div>
+
+          <div className="credibility-footer">
+            <span>DESIGN QUE MOSTRA O QUE TORNA SEU NEGÓCIO PRÓPRIO.</span>
+            <span>CONTINUA ↓</span>
+          </div>
+        </div>
+      </section>
+      <div id="portfolio" className="next-section-marker" aria-label="Portfólio" />
       <div id="contato" className="contact-marker" aria-label="Contato" />
     </main>
   );
