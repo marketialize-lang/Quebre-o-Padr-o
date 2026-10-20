@@ -38,6 +38,8 @@ function Index() {
     let pointer = { x: -1000, y: -1000 };
     let pilot = 0;
     let lastActivity = performance.now();
+    let magnetX = stage.clientWidth / 2;
+    let magnetStrength = 0;
     let touchPointer: { x: number; y: number } | null = null;
     const moveRulerPointer = (event: PointerEvent) => {
       pointer = { x: event.clientX, y: event.clientY };
@@ -55,17 +57,11 @@ function Index() {
       lastActivity = performance.now();
     };
 
-    const setRulerPosition = (x: number) => {
-      if (!ruler || !rulerMark || !rulerTag) return;
-      const rulerX = Math.max(0, Math.min(ruler.clientWidth - 1, x));
-      rulerMark.style.left = `${rulerX}px`;
-      rulerTag.textContent = `X ${String(Math.round(rulerX)).padStart(4, "0")}`;
-    };
-
     if (rulerMark && rulerTag && ruler) {
       const initialX = Math.round(ruler.clientWidth / 2);
-      rulerMark.style.opacity = "1";
-      setRulerPosition(initialX);
+      rulerMark.style.transform = `translateX(${initialX}px)`;
+      rulerMark.style.opacity = "0";
+      rulerTag.textContent = `X ${String(initialX).padStart(4, "0")}`;
     }
 
     const animate = (time: number) => {
@@ -80,6 +76,8 @@ function Index() {
           : touchPointer
             ? { x: touchPointer.x - stage.getBoundingClientRect().left, y: touchPointer.y - stage.getBoundingClientRect().top }
             : measure();
+        magnetX = target.x;
+        magnetStrength = 0;
 
         letters.forEach((letter) => {
           const rect = letter.getBoundingClientRect();
@@ -90,6 +88,7 @@ function Index() {
           const dy = cy - target.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
           const influence = Math.max(0, 1 - distance / 180);
+          magnetStrength = Math.max(magnetStrength, influence);
           const push = influence * 20;
           const angle = Math.atan2(dy, dx);
           const rotate = Math.max(-9, Math.min(9, dx * influence * 0.065));
@@ -103,15 +102,11 @@ function Index() {
 
       if (ruler && rulerMark && rulerTag) {
         const stageRect = stage.getBoundingClientRect();
-        const x = pointer.x - stageRect.left;
-        const y = pointer.y - stageRect.top;
-        const overStage = x >= 0 && y >= 0 && x <= stageRect.width && y <= stageRect.height;
-        if (overStage) {
-          setRulerPosition((x / Math.max(1, stageRect.width)) * ruler.clientWidth);
-        } else if (idle && !paused && !reducedMotion) {
-          setRulerPosition(((0.18 + pilot * 0.62) * stage.clientWidth / Math.max(1, stageRect.width)) * ruler.clientWidth);
-        }
-        rulerMark.style.opacity = "1";
+        const rulerRect = ruler.getBoundingClientRect();
+        const rulerX = Math.max(0, Math.min(rulerRect.width - 1, magnetX + stageRect.left - rulerRect.left));
+        rulerMark.style.opacity = !paused && !reducedMotion ? `${magnetStrength}` : "0";
+        rulerMark.style.transform = `translateX(${rulerX}px)`;
+        if (magnetStrength > 0) rulerTag.textContent = `X ${String(Math.round(rulerX)).padStart(4, "0")}`;
       }
       frame = requestAnimationFrame(animate);
     };
