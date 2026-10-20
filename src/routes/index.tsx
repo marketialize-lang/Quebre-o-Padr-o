@@ -34,113 +34,131 @@ function Index() {
     const rulerMark = rulerMarkRef.current;
     const rulerTag = rulerTagRef.current;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const letterStates = letters.map(() => ({ x: 0, y: 0, rotation: 0, scale: 1, hot: 0, vx: 0, vy: 0, vr: 0, vs: 0, vh: 0 }));
     let frame = 0;
-    let pointer = { x: -1000, y: -1000 };
-    let pilot = 0;
-    let lastActivity = performance.now();
-    let magnetX = stage.clientWidth / 2;
-    let magnetStrength = 0;
-    let rulerSweep: Animation | null = null;
+    let pointer = { x: -1000, y: -1000, active: false };
     let touchPointer: { x: number; y: number } | null = null;
-    const moveRulerPointer = (event: PointerEvent) => {
-      pointer = { x: event.clientX, y: event.clientY };
-      if (event.pointerType === "touch") touchPointer = pointer;
-    };
+    let lastActivity = performance.now();
+    let lastFrame = lastActivity;
+    let pilotTime = 0;
+    let magnetX = stage.clientWidth / 2;
+    let magnetY = stage.clientHeight / 2;
+    let magnetStrength = 0;
+    const initialRulerRect = ruler?.getBoundingClientRect();
+    const initialMarkX = initialRulerRect ? Math.round(initialRulerRect.width * 0.18) : 0;
 
-    const measure = () => {
-      const rect = stage.getBoundingClientRect();
-      return { x: pointer.x - rect.left, y: pointer.y - rect.top };
-    };
+    if (rulerMark && rulerTag) {
+      rulerMark.style.left = `${initialMarkX}px`;
+      rulerMark.style.opacity = "1";
+      rulerTag.textContent = `X ${String(initialMarkX).padStart(4, "0")}`;
+    }
 
     const movePointer = (event: PointerEvent) => {
-      pointer = { x: event.clientX, y: event.clientY };
+      pointer = { x: event.clientX, y: event.clientY, active: true };
       touchPointer = event.pointerType === "touch" ? pointer : null;
       lastActivity = performance.now();
     };
 
-    if (rulerMark && rulerTag && ruler) {
-      rulerMark.style.left = "18%";
-      rulerTag.textContent = `X ${String(Math.round(ruler.clientWidth * 0.18)).padStart(4, "0")}`;
-    }
-
     const animate = (time: number) => {
-      const idle = time - lastActivity > 1300;
-      if (idle && !paused) {
-        pilot = (Math.sin(time / 1800) + 1) / 2;
-      }
+      const dt = Math.min(0.05, Math.max(0.001, (time - lastFrame) / 1000));
+      lastFrame = time;
+      const stageRect = stage.getBoundingClientRect();
+      const fontSize = Number.parseFloat(getComputedStyle(stage).fontSize) || 100;
+      const radius = Math.max(90, fontSize * 1.5);
+      const now = time;
+      const idle = now - lastActivity > 1500;
+
+      let targetX = magnetX;
+      let targetY = magnetY;
+      let want = 0;
 
       if (!paused && !reducedMotion) {
-        const target = idle
-          ? { x: stage.clientWidth * (0.18 + pilot * 0.62), y: stage.clientHeight * 0.48 }
-          : touchPointer
-            ? { x: touchPointer.x - stage.getBoundingClientRect().left, y: touchPointer.y - stage.getBoundingClientRect().top }
-            : measure();
-        magnetX = target.x;
-        magnetStrength = 0;
-
-        letters.forEach((letter) => {
-          const rect = letter.getBoundingClientRect();
-          const stageRect = stage.getBoundingClientRect();
-          const cx = rect.left - stageRect.left + rect.width / 2;
-          const cy = rect.top - stageRect.top + rect.height / 2;
-          const dx = cx - target.x;
-          const dy = cy - target.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          const influence = Math.max(0, 1 - distance / 180);
-          magnetStrength = Math.max(magnetStrength, influence);
-          const push = influence * 20;
-          const angle = Math.atan2(dy, dx);
-          const rotate = Math.max(-9, Math.min(9, dx * influence * 0.065));
-          letter.style.setProperty("--shift-x", `${Math.cos(angle) * push}px`);
-          letter.style.setProperty("--shift-y", `${Math.sin(angle) * push}px`);
-          letter.style.setProperty("--rotate", `${rotate}deg`);
-          letter.style.setProperty("--scale", `${1 + influence * 0.16}`);
-          letter.style.setProperty("--hot", `${influence}`);
-        });
+        if (touchPointer && now - lastActivity < 2600) {
+          targetX = touchPointer.x - stageRect.left;
+          targetY = touchPointer.y - stageRect.top;
+          want = 1;
+        } else if (pointer.active && now - lastActivity < 2600) {
+          targetX = pointer.x - stageRect.left;
+          targetY = pointer.y - stageRect.top;
+          const within = targetX >= -radius && targetX <= stageRect.width + radius && targetY >= -radius && targetY <= stageRect.height + radius;
+          want = within ? Math.max(0.45, 1 - Math.max(0, Math.min(targetX, stageRect.width - targetX, targetY, stageRect.height - targetY)) / (radius * 2)) : 0;
+        } else if (idle) {
+          pilotTime += dt;
+          const count = Math.max(2, letters.length);
+          const position = (pilotTime * 2.8) % (2 * count - 2);
+          const index = position <= count - 1 ? position : 2 * count - 2 - position;
+          const letterRect = letters[Math.round(index)]?.getBoundingClientRect();
+          targetX = letterRect ? letterRect.left - stageRect.left + letterRect.width / 2 : stageRect.width * (0.18 + (Math.sin(pilotTime * 0.55) + 1) * 0.31);
+          targetY = letterRect ? letterRect.top - stageRect.top + letterRect.height / 2 : stageRect.height * 0.48;
+          targetY += Math.sin(pilotTime * 2.1) * fontSize * 0.12;
+          want = 0.86;
+        }
       }
+
+      const near = want > 0;
+      const magnetEase = 1 - Math.exp(-dt * (near ? 18 : 6));
+      magnetX += (targetX - magnetX) * magnetEase;
+      magnetY += (targetY - magnetY) * magnetEase;
+      magnetStrength += (want - magnetStrength) * (1 - Math.exp(-dt * (want > magnetStrength ? 5 : 2.6)));
+      if (magnetStrength < 0.002 && want === 0) magnetStrength = 0;
+
+      letters.forEach((letter, index) => {
+        const state = letterStates[index];
+        const rect = letter.getBoundingClientRect();
+        const cx = rect.left - stageRect.left + rect.width / 2;
+        const cy = rect.top - stageRect.top + rect.height / 2;
+        const dx = cx - magnetX;
+        const dy = cy - magnetY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const t = Math.max(0, 1 - distance / radius);
+        const influence = t * t * (3 - 2 * t) * magnetStrength;
+        const direction = distance > 0.001 ? 1 / distance : 0;
+        const force = fontSize * 0.2;
+        const gx = dx * direction * force * influence;
+        const gy = dy * direction * force * influence * 0.72;
+        const gr = Math.max(-30, Math.min(30, (dx / radius) * 30 * influence));
+        const gs = 1 + 0.34 * influence;
+        const gh = influence;
+        const spring = (value: number, velocity: number, goal: number, damping: number) => {
+          const acceleration = (goal - value) * 190 - damping * velocity;
+          const nextVelocity = velocity + acceleration * dt;
+          return [value + nextVelocity * dt, nextVelocity] as const;
+        };
+        const [x, vx] = spring(state.x, state.vx, gx, index === 0 ? 22 : 15);
+        const [y, vy] = spring(state.y, state.vy, gy, index === 0 ? 22 : 15);
+        const [rotation, vr] = spring(state.rotation, state.vr, gr, index === 0 ? 22 : 15);
+        const [scale, vs] = spring(state.scale, state.vs, gs, index === 0 ? 22 : 15);
+        const [hot, vh] = spring(state.hot, state.vh, gh, index === 0 ? 22 : 15);
+        Object.assign(state, { x, y, rotation, scale, hot, vx, vy, vr, vs, vh });
+        letter.style.setProperty("--shift-x", `${x}px`);
+        letter.style.setProperty("--shift-y", `${y}px`);
+        letter.style.setProperty("--rotate", `${rotation}deg`);
+        letter.style.setProperty("--scale", `${scale}`);
+        letter.style.setProperty("--hot", `${Math.max(0, Math.min(1, hot))}`);
+      });
 
       if (ruler && rulerMark && rulerTag) {
-        const stageRect = stage.getBoundingClientRect();
         const rulerRect = ruler.getBoundingClientRect();
-        if (idle && !paused && !reducedMotion) {
-          if (!rulerSweep) {
-            const currentX = rulerMark.getBoundingClientRect().left - rulerRect.left;
-            const from = Math.max(0, Math.min(100, (currentX / Math.max(1, rulerRect.width)) * 100));
-            const to = from < 50 ? 82 : 18;
-            rulerSweep = rulerMark.animate(
-              [{ left: `${from}%` }, { left: `${to}%` }],
-              { duration: 1600, easing: "ease-in-out", direction: "alternate", iterations: Infinity },
-            );
-          } else {
-            rulerSweep.play();
-          }
-        } else {
-          rulerSweep?.cancel();
-          rulerSweep = null;
-          if (!paused) {
-            const pointerX = pointer.x - rulerRect.left;
-            const rulerX = Math.max(0, Math.min(rulerRect.width - 1, pointerX));
-            rulerMark.style.left = `${rulerX}px`;
-          }
-        }
-        rulerMark.style.opacity = "1";
-        const liveX = Math.max(0, Math.min(rulerRect.width - 1, rulerMark.getBoundingClientRect().left - rulerRect.left));
-        rulerTag.textContent = `X ${String(Math.round(liveX)).padStart(4, "0")}`;
+        const relativeStageX = magnetX - stageRect.left;
+        const rulerX = Math.max(0, Math.min(rulerRect.width - 1, relativeStageX));
+        rulerMark.style.left = `${rulerX}px`;
+        rulerMark.style.opacity = String(Math.max(0.3, Math.min(1, magnetStrength)));
+        rulerTag.textContent = `X ${String(Math.round(rulerX)).padStart(4, "0")}`;
       }
+
       frame = requestAnimationFrame(animate);
     };
 
     stage.addEventListener("pointermove", movePointer);
     stage.addEventListener("pointerdown", movePointer);
-    ruler?.addEventListener("pointermove", moveRulerPointer);
-    ruler?.addEventListener("pointerdown", moveRulerPointer);
+    ruler?.addEventListener("pointermove", movePointer);
+    ruler?.addEventListener("pointerdown", movePointer);
     frame = requestAnimationFrame(animate);
     return () => {
       stage.removeEventListener("pointermove", movePointer);
       stage.removeEventListener("pointerdown", movePointer);
-      ruler?.removeEventListener("pointermove", moveRulerPointer);
-      ruler?.removeEventListener("pointerdown", moveRulerPointer);
-      rulerSweep?.cancel();
+      ruler?.removeEventListener("pointermove", movePointer);
+      ruler?.removeEventListener("pointerdown", movePointer);
       cancelAnimationFrame(frame);
     };
   }, [paused]);
