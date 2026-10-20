@@ -41,8 +41,9 @@ function Index() {
     let lastActivity = performance.now();
     let lastFrame = lastActivity;
     let pilotTime = 0;
-    let magnetX = stage.clientWidth / 2;
-    let magnetY = stage.clientHeight / 2;
+    const initialStageRect = stage.getBoundingClientRect();
+    let magnetX = initialStageRect.width / 2;
+    let magnetY = initialStageRect.height / 2;
     let magnetStrength = 0;
     const initialRulerRect = ruler?.getBoundingClientRect();
     const initialMarkX = initialRulerRect ? Math.round(initialRulerRect.width * 0.18) : 0;
@@ -139,8 +140,7 @@ function Index() {
 
       if (ruler && rulerMark && rulerTag) {
         const rulerRect = ruler.getBoundingClientRect();
-        const relativeStageX = magnetX - stageRect.left;
-        const rulerX = Math.max(0, Math.min(rulerRect.width - 1, relativeStageX));
+        const rulerX = Math.max(0, Math.min(rulerRect.width - 1, magnetX));
         rulerMark.style.left = `${rulerX}px`;
         rulerMark.style.opacity = String(Math.max(0.3, Math.min(1, magnetStrength)));
         rulerTag.textContent = `X ${String(Math.round(rulerX)).padStart(4, "0")}`;
