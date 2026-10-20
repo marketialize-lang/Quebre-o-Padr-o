@@ -14,6 +14,11 @@ const headlineLines = [
 
 function Index() {
   const stageRef = useRef<HTMLDivElement>(null);
+  const credibilitySectionRef = useRef<HTMLElement>(null);
+  const proofPanelRef = useRef<HTMLElement>(null);
+  const proofCountRef = useRef<HTMLSpanElement>(null);
+  const proofRailFillRef = useRef<HTMLSpanElement>(null);
+  const proofRailHeadRef = useRef<HTMLSpanElement>(null);
   const [paused, setPaused] = useState(false);
   const [shuffleKey, setShuffleKey] = useState(0);
 
@@ -83,6 +88,50 @@ function Index() {
       cancelAnimationFrame(frame);
     };
   }, [paused]);
+
+  useEffect(() => {
+    const section = credibilitySectionRef.current;
+    const proofPanel = proofPanelRef.current;
+    const counter = proofCountRef.current;
+    const railFill = proofRailFillRef.current;
+    const railHead = proofRailHeadRef.current;
+    if (!section || !proofPanel || !counter || !railFill || !railHead) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+      const sectionRect = section.getBoundingClientRect();
+      const proofRect = proofPanel.getBoundingClientRect();
+      const viewport = window.innerHeight;
+      const visible = sectionRect.top < viewport * 0.88 && sectionRect.bottom > viewport * 0.12;
+      const start = viewport * 0.9;
+      const end = viewport * 0.18;
+      const progress = reduceMotion
+        ? 1
+        : Math.max(0, Math.min(1, (start - proofRect.top) / (start - end)));
+
+      section.dataset.scrollReady = "true";
+      section.dataset.inView = visible ? "true" : "false";
+      counter.textContent = String(Math.round(66 * progress));
+      railFill.style.transform = `scaleY(${progress})`;
+      railHead.style.top = `${progress * 100}%`;
+    };
+
+    const requestUpdate = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    return () => {
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
 
   const shuffleLetters = () => {
     setShuffleKey((key) => key + 1);
@@ -170,7 +219,7 @@ function Index() {
           </footer>
         </div>
       </section>
-      <section className="credibility-section" aria-labelledby="credibility-title">
+      <section ref={credibilitySectionRef} className="credibility-section" aria-labelledby="credibility-title">
         <div className="credibility-shell">
           <div className="credibility-topline">
             <span>02 / A PRESENÇA ANTES DA CONVERSA</span>
@@ -179,23 +228,29 @@ function Index() {
 
           <div className="credibility-layout">
             <div className="credibility-copy">
-              <p className="credibility-kicker"><span /> O PADRÃO QUE VALE A PENA QUEBRAR</p>
-              <h2 id="credibility-title">
+              <p className="credibility-kicker scroll-reveal"><span /> O PADRÃO QUE VALE A PENA QUEBRAR</p>
+              <h2 id="credibility-title" className="scroll-reveal">
                 <span className="credibility-heading-desktop">Um site genérico pode<br />fazer um bom negócio<br />parecer igual a todos.</span>
                 <span className="credibility-heading-mobile">Um site genérico<br />pode fazer um bom<br />negócio parecer<br />igual a todos.</span>
               </h2>
-              <p className="credibility-body">
+              <p className="credibility-body scroll-reveal">
                 Alguém recebe seu nome por indicação, encontra um anúncio ou visita seu perfil. Antes de chamar, pode procurar mais informações sobre o que você faz. Se a página é confusa, desatualizada ou poderia pertencer a qualquer empresa, fica mais difícil perceber o cuidado por trás do seu trabalho.
               </p>
-              <div className="credibility-takeaway">
+              <div className="credibility-takeaway scroll-reveal">
                 <span>UMA PÁGINA COM INTENÇÃO</span>
                 <p>Organiza a mensagem, mostra o que você oferece e deixa o próximo passo claro.</p>
               </div>
             </div>
 
-            <aside className="credibility-proof" aria-label="Dado de pesquisa sobre confiança em empresas com site">
+            <aside ref={proofPanelRef} className="credibility-proof scroll-reveal" aria-label="Dado de pesquisa sobre confiança em empresas com site">
+              <span className="proof-rail" aria-hidden="true">
+                <span className="proof-rail-fill" ref={proofRailFillRef} />
+                <span className="proof-rail-head" ref={proofRailHeadRef} />
+              </span>
               <div className="proof-label"><span>UM DADO SOBRE CREDIBILIDADE</span><span>01 — PESQUISA</span></div>
-              <div className="proof-number">66<span>%</span></div>
+              <div className="proof-number" role="img" aria-label="66 por cento">
+                <span className="proof-count" ref={proofCountRef} aria-hidden="true">0</span><span aria-hidden="true">%</span>
+              </div>
               <p className="proof-copy">dos consumidores pesquisados concordaram que uma empresa com site próprio parece mais confiável do que uma empresa sem site.</p>
               <div className="proof-source">
                 <span>Pesquisa encomendada pela Verisign à 451 Research, com 5.450 consumidores. O levantamento mediu percepção, não aumento de vendas.</span>
