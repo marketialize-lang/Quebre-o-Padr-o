@@ -25,10 +25,60 @@ const portfolioProjects = [
   { number: "10", name: "HALO Beauty Lab", niche: "BELEZA", descriptor: "Experiência digital para um salão de beleza.", wordmark: "HALO", theme: "halo", cover: "/portfolio-halo.webp", url: "https://halo-beauty-lab-rafael.netlify.app/" },
 ];
 
+const servicePlans = [
+  {
+    number: "01",
+    name: "Página objetiva",
+    description: "Para apresentar seu serviço ou oferta com uma estrutura direta e bem organizada.",
+    price: 497,
+    timeline: "Até 2 dias",
+    emphasis: "Uma página mais direta",
+  },
+  {
+    number: "02",
+    name: "Página estratégica",
+    description: "Para projetos que precisam apresentar mais contexto e organizar diferentes partes da oferta.",
+    price: 1000,
+    timeline: "Até 3 dias úteis",
+    emphasis: "Mais camadas de conteúdo",
+  },
+  {
+    number: "03",
+    name: "Página completa",
+    description: "Para uma apresentação mais elaborada, com estrutura e copy persuasiva.",
+    price: 1500,
+    timeline: "Até 3 dias úteis",
+    emphasis: "Estrutura e copy persuasiva",
+  },
+];
+
+function PriceOdometer({ value }: { value: number }) {
+  const formatted = value.toLocaleString("pt-BR");
+  return (
+    <span className="pricing-amount" aria-hidden="true">
+      {formatted.split("").map((character, index) => {
+        if (!/\d/.test(character)) return <span className="pricing-thousands" key={`separator-${index}`}>{character}</span>;
+        const rollTo = Number(character);
+        return (
+          <span className="pricing-digit-window" key={`digit-${index}`}>
+            <span className="pricing-digit-strip" data-wheel-index={rollTo}>
+              {Array.from({ length: 10 }, (_, digit) => <span key={digit}>{digit}</span>)}
+            </span>
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 
 function Index() {
   const stageRef = useRef<HTMLDivElement>(null);
   const credibilitySectionRef = useRef<HTMLElement>(null);
+  const pricingTrackRef = useRef<HTMLDivElement>(null);
+  const pricingShadeRef = useRef<HTMLDivElement>(null);
+  const pricingLensRef = useRef<SVGGElement>(null);
+  const pricingBladesRef = useRef<SVGGElement>(null);
   const rulerRef = useRef<HTMLDivElement>(null);
   const rulerMarkRef = useRef<HTMLSpanElement>(null);
   const rulerTagRef = useRef<HTMLElement>(null);
@@ -36,6 +86,7 @@ function Index() {
   const [shuffleKey, setShuffleKey] = useState(0);
   const [activeStoryStep, setActiveStoryStep] = useState(0);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
+  const [pricingMode, setPricingMode] = useState<"investment" | "timeline">("investment");
   const projectsSectionRef = useRef<HTMLElement>(null);
   const projectsRailRef = useRef<HTMLUListElement>(null);
   const projectAutoTouchedRef = useRef(false);
@@ -43,6 +94,94 @@ function Index() {
   const projectProgrammaticScrollRef = useRef(false);
   const projectProgrammaticScrollTimerRef = useRef(0);
   const projectWheelCooldownRef = useRef(0);
+
+  useEffect(() => {
+    const track = pricingTrackRef.current;
+    const shade = pricingShadeRef.current;
+    const lens = pricingLensRef.current;
+    const bladesGroup = pricingBladesRef.current;
+    if (!track || !shade || !lens || !bladesGroup) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const blades = Array.from(bladesGroup.querySelectorAll<SVGPathElement>("path"));
+    const bladeCount = blades.length;
+    const outerRadius = 430;
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+      if (reduceMotion) {
+        track.style.setProperty("--iris-progress", "1");
+        shade.style.setProperty("--iris-clear-radius", "150vmax");
+        lens.style.opacity = "0";
+        return;
+      }
+
+      const rect = track.getBoundingClientRect();
+      const distance = Math.max(1, rect.height - window.innerHeight);
+      const progress = Math.max(0, Math.min(1, -rect.top / distance));
+      const radius = 12 + 410 * Math.pow(progress, 1.45);
+      const clearRadius = Math.hypot(window.innerWidth, window.innerHeight) * 0.72 * Math.pow(progress, 1.1);
+      track.style.setProperty("--iris-progress", String(progress));
+      shade.style.setProperty("--iris-clear-radius", `${clearRadius}px`);
+      lens.style.opacity = String(Math.max(0, Math.min(1, (0.94 - progress) / 0.23)));
+      lens.style.transform = `scale(${0.88 + progress * 1.12}) rotate(${progress * 28}deg)`;
+
+      const points = Array.from({ length: bladeCount }, (_, index) => {
+        const angle = -Math.PI / 2 + index * (2 * Math.PI / bladeCount);
+        return [radius * Math.cos(angle), radius * Math.sin(angle)] as const;
+      });
+
+      blades.forEach((blade, index) => {
+        const [x1, y1] = points[index];
+        const [x2, y2] = points[(index + 1) % bladeCount];
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+        const length = Math.hypot(dx, dy) || 1;
+        dx /= length;
+        dy /= length;
+        const projection = x1 * dx + y1 * dy;
+        const constant = x1 * x1 + y1 * y1 - outerRadius * outerRadius;
+        const discriminant = Math.sqrt(Math.max(0, projection * projection - constant));
+        const ax = x1 + (-projection - discriminant) * dx;
+        const ay = y1 + (-projection - discriminant) * dy;
+        const bx = x1 + (-projection + discriminant) * dx;
+        const by = y1 + (-projection + discriminant) * dy;
+        const sweep = bx * ay - by * ax > 0 ? 1 : 0;
+        blade.setAttribute("d", `M${ax.toFixed(1)} ${ay.toFixed(1)}L${bx.toFixed(1)} ${by.toFixed(1)}A${outerRadius} ${outerRadius} 0 0 ${sweep} ${ax.toFixed(1)} ${ay.toFixed(1)}Z`);
+      });
+    };
+
+    const requestUpdate = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+
+    window.addEventListener("scroll", requestUpdate, { passive: true });
+    window.addEventListener("resize", requestUpdate);
+    update();
+    return () => {
+      window.removeEventListener("scroll", requestUpdate);
+      window.removeEventListener("resize", requestUpdate);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  useEffect(() => {
+    const prices = Array.from(document.querySelectorAll<HTMLElement>(".pricing-price-line"));
+    if (!prices.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-rolling");
+        entry.target.querySelectorAll<HTMLElement>(".pricing-digit-strip").forEach((strip) => {
+          strip.style.transform = `translateY(-${strip.dataset.wheelIndex}em)`;
+        });
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.45 });
+    prices.forEach((price) => observer.observe(price));
+    return () => observer.disconnect();
+  }, [pricingMode]);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -556,7 +695,98 @@ function Index() {
           </footer>
         </div>
       </section>
-      <div id="contato" className="contact-marker" aria-label="Contato" />
+      <section id="contato" className="pricing-section" aria-labelledby="pricing-title">
+        <div className="pricing-entry-track" ref={pricingTrackRef}>
+          <div className="pricing-entry-stage">
+            <div className="pricing-entry-copy">
+              <p className="pricing-kicker"><span /> 04 / INVESTIMENTO</p>
+              <h2 id="pricing-title">Um projeto com<br /><em>o tamanho certo.</em></h2>
+              <p>O investimento acompanha a complexidade da página e do conteúdo.</p>
+              <span className="pricing-scroll-cue"><ArrowDown size={14} /> ROLE PARA REVELAR</span>
+            </div>
+            <div className="pricing-camera-shade" ref={pricingShadeRef} aria-hidden="true" />
+            <div className="pricing-camera-ui" aria-hidden="true">
+              <span className="pricing-camera-brand">RF <i /> DIGITAL</span>
+              <span className="pricing-camera-spec">LENTE 35 MM · FOCO MANUAL</span>
+              <span className="pricing-camera-meter"><i /></span>
+              <svg className="pricing-camera-lens" viewBox="-500 -500 1000 1000" role="presentation">
+                <defs>
+                  <linearGradient id="pricing-lens-metal" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stopColor="#898783" />
+                    <stop offset=".3" stopColor="#242322" />
+                    <stop offset=".72" stopColor="#101010" />
+                    <stop offset="1" stopColor="#6c6965" />
+                  </linearGradient>
+                </defs>
+                <g ref={pricingLensRef} className="pricing-lens-mechanism">
+                  <circle r="480" fill="none" stroke="#0b0b0b" strokeWidth="30" />
+                  <circle r="481" fill="none" stroke="#45423e" strokeWidth="21" strokeDasharray="3 5" />
+                  <circle r="458" fill="none" stroke="url(#pricing-lens-metal)" strokeWidth="4" />
+                  <circle r="392" fill="none" stroke="#706b65" strokeOpacity=".35" strokeWidth="2" />
+                  <circle r="332" fill="none" stroke="#050505" strokeWidth="26" />
+                  <circle r="316" fill="none" stroke="#d2ccc1" strokeOpacity=".2" strokeWidth="2" />
+                  {Array.from({ length: 24 }, (_, index) => (
+                    <line key={index} transform={`rotate(${index * 15})`} y1="-444" y2={index % 3 === 0 ? "-420" : "-430"} stroke="#e7e2d9" strokeOpacity={index % 3 === 0 ? ".65" : ".3"} strokeWidth={index % 3 === 0 ? "2" : "1"} />
+                  ))}
+                  <g ref={pricingBladesRef} className="pricing-iris-blades">
+                    {Array.from({ length: 9 }, (_, index) => <path key={index} fill={`hsl(30 3% ${12 + (index % 3) * 2}%)`} stroke="rgba(244,241,234,.16)" strokeWidth="1.5" />)}
+                  </g>
+                  <circle r="429" fill="none" stroke="#f4f1ea" strokeOpacity=".25" strokeWidth="2" />
+                  <path d="M-236 -168A292 292 0 0 1 -42 -285" fill="none" stroke="#fff" strokeOpacity=".16" strokeWidth="16" strokeLinecap="round" />
+                  <circle cx="-92" cy="-226" r="6" fill="#fff" fillOpacity=".42" />
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="pricing-content">
+          <div className="pricing-content-heading">
+            <p className="pricing-kicker"><span /> PÁGINAS E SITES</p>
+            <h3>Escolha o escopo<br /><em>do seu projeto.</em></h3>
+            <p>Os valores são por projeto. Todos começam com um briefing completo.</p>
+            <div className="pricing-mode-switch" role="group" aria-label="Alternar informação dos planos">
+              <button type="button" className={pricingMode === "investment" ? "is-active" : ""} aria-pressed={pricingMode === "investment"} onClick={() => setPricingMode("investment")}>Investimento</button>
+              <button type="button" className={pricingMode === "timeline" ? "is-active" : ""} aria-pressed={pricingMode === "timeline"} onClick={() => setPricingMode("timeline")}>Prazo estimado</button>
+            </div>
+            <p className="pricing-mode-note">O prazo é uma estimativa e pode variar conforme o escopo e a demanda.</p>
+          </div>
+
+          <div className="pricing-cards">
+            {servicePlans.map((plan, index) => (
+              <article className={`pricing-card${index === 1 ? " pricing-card-featured" : ""}`} key={plan.number}>
+                <div className="pricing-card-topline"><span>PLANO {plan.number}</span><span>{plan.emphasis}</span></div>
+                <h4>{plan.name}</h4>
+                <p className="pricing-card-description">{plan.description}</p>
+                <div className={`pricing-price-block${pricingMode === "timeline" ? " is-hidden" : ""}`} aria-hidden={pricingMode !== "investment"}>
+                  <span className="pricing-price-label">INVESTIMENTO POR PROJETO</span>
+                  <div className="pricing-price-line" aria-label={`R$ ${plan.price.toLocaleString("pt-BR")} por projeto`}>
+                    <span className="pricing-currency">R$</span>
+                    <PriceOdometer value={plan.price} />
+                  </div>
+                </div>
+                <div className={`pricing-price-block pricing-timeline-block${pricingMode === "investment" ? " is-hidden" : ""}`} aria-hidden={pricingMode !== "timeline"}>
+                  <span className="pricing-price-label">PRAZO ESTIMADO</span>
+                  <p className="pricing-timeline-value">{plan.timeline}</p>
+                </div>
+                <a className="pricing-card-link" href="#briefing">
+                  Entenda a próxima etapa <ArrowUpRight size={16} aria-hidden="true" />
+                </a>
+              </article>
+            ))}
+          </div>
+
+          <aside className="pricing-briefing" id="briefing">
+            <span className="pricing-briefing-index">ANTES DE COMEÇAR</span>
+            <div>
+              <h4>Todo projeto começa com um briefing completo.</h4>
+              <p>É nessa etapa que vamos entender seu negócio, seus objetivos e o conteúdo necessário para estruturar a página.</p>
+            </div>
+            <span className="pricing-briefing-mark" aria-hidden="true">RF<span>.</span></span>
+          </aside>
+          <div className="pricing-footer"><span>RAFAEL FONSECA · ESTRATÉGIA, DESIGN E PRESENÇA DIGITAL</span><a href="#top">VOLTAR AO INÍCIO <ArrowUpRight size={13} /></a></div>
+        </div>
+      </section>
     </main>
   );
 }
