@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDown, ArrowRight, Pause, Play, Shuffle } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight, Pause, Play, Shuffle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export const Route = createFileRoute("/")({
@@ -11,6 +11,20 @@ const headlineLines = [
   { text: "o padrão", style: "serif" },
   { text: "DO SEU SITE", style: "indent" },
 ];
+
+const portfolioProjects = [
+  { number: "01", name: "AERIS X", niche: "AERONÁUTICA", descriptor: "Experiência digital para um drone conceito.", wordmark: "AERIS", theme: "aeris", url: "https://gregarious-biscochitos-146694.netlify.app/" },
+  { number: "02", name: "Gravyx", niche: "INTELIGÊNCIA ARTIFICIAL", descriptor: "Apresentação de uma plataforma de IA.", wordmark: "gravyx", theme: "gravyx", url: "https://gravyx-plataforma-ia-rafael.netlify.app/" },
+  { number: "03", name: "Tesla Roadster", niche: "AUTOMOTIVO", descriptor: "Página conceito com narrativa visual para o Roadster.", wordmark: "ROADSTER", theme: "roadster", url: "https://tesla-roadster-rafael.netlify.app/" },
+  { number: "04", name: "Entre", niche: "ESTÚDIO CRIATIVO", descriptor: "Presença digital para um estúdio de criação.", wordmark: "entre", theme: "entre", url: "https://entre-estudio-rafael.netlify.app/" },
+  { number: "05", name: "Dr. Henrique Salles", niche: "ODONTOLOGIA", descriptor: "Página de apresentação para implantodontia.", wordmark: "HS", theme: "henrique", url: "https://dr-henrique-salles-rafael.netlify.app/" },
+  { number: "06", name: "Altano", niche: "MERCADO IMOBILIÁRIO", descriptor: "Experiência para imobiliárias e corretores.", wordmark: "ALTANO", theme: "altano", url: "https://altano-imobiliarias-rafael.netlify.app/" },
+  { number: "07", name: "Advocacia Varela", niche: "JURÍDICO", descriptor: "Presença institucional para um escritório de advocacia.", wordmark: "VARELA", theme: "varela", url: "https://advocacia-varela-rafael.netlify.app/" },
+  { number: "08", name: "Corvelo", niche: "BARBEARIA", descriptor: "Identidade digital para uma barbearia.", wordmark: "CORVELO", theme: "corvelo", url: "https://corvelo-barbearia-rafael.netlify.app/" },
+  { number: "09", name: "Método Prisma", niche: "EDUCAÇÃO DIGITAL", descriptor: "Página de apresentação para um infoproduto.", wordmark: "PRISMA", theme: "prisma", url: "https://metodo-prisma-rafael.netlify.app/" },
+  { number: "10", name: "HALO Beauty Lab", niche: "BELEZA", descriptor: "Experiência digital para um salão de beleza.", wordmark: "HALO", theme: "halo", url: "https://halo-beauty-lab-rafael.netlify.app/" },
+];
+
 
 function Index() {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -322,7 +336,58 @@ function Index() {
           </div>
         </div>
       </section>
-      <div id="portfolio" className="next-section-marker" aria-label="Portfólio" />
+      <section id="portfolio" className="projects-section" aria-labelledby="projects-title">
+        <div className="projects-shell">
+          <div className="projects-topline">
+            <span>03 / PROJETOS EM DIFERENTES MERCADOS</span>
+            <span>RAFAEL FONSECA · SELEÇÃO DE PÁGINAS</span>
+          </div>
+          <div className="projects-intro">
+            <div>
+              <p className="projects-kicker"><span /> PORTFÓLIO DIGITAL</p>
+              <h2 id="projects-title">Dez ideias.<br /><em>Dez caminhos.</em></h2>
+            </div>
+            <div className="projects-aside">
+              <p>Uma seleção de páginas conceito para explorar como estratégia e design mudam de acordo com cada mercado.</p>
+              <span><strong>10</strong> PROJETOS NO AR</span>
+            </div>
+          </div>
+
+          <div className="projects-grid">
+            {portfolioProjects.map((project) => (
+              <a
+                className="project-card"
+                href={project.url}
+                key={project.number}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={'Abrir projeto ' + project.name + ' em nova aba'}
+              >
+                <div className={"project-card-visual project-visual-" + project.theme}>
+                  <div className="project-visual-topline"><span>RF / DIGITAL</span><span>{project.number}</span></div>
+                  <span className="project-visual-ghost" aria-hidden="true">{project.wordmark}</span>
+                  <span className="project-visual-wordmark">{project.wordmark}</span>
+                  <span className="project-visual-niche">{project.niche}</span>
+                  <span className="project-visual-open" aria-hidden="true"><ArrowUpRight size={21} /></span>
+                </div>
+                <div className="project-card-info">
+                  <div>
+                    <span className="project-card-number">PROJETO {project.number}</span>
+                    <h3>{project.name}</h3>
+                    <p>{project.descriptor}</p>
+                  </div>
+                  <span className="project-card-link">VISITAR PÁGINA <ArrowRight size={15} /></span>
+                </div>
+              </a>
+            ))}
+          </div>
+
+          <footer className="projects-footer">
+            <span>ESTUDOS E PÁGINAS CONCEITO · RAFAEL FONSECA</span>
+            <a href="#top">VOLTAR AO TOPO <ArrowUpRight size={14} /></a>
+          </footer>
+        </div>
+      </section>
       <div id="contato" className="contact-marker" aria-label="Contato" />
     </main>
   );
