@@ -125,10 +125,9 @@ function Index() {
       }
 
       const rect = track.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const distance = Math.max(1, viewportHeight + rect.height);
-      const progress = Math.max(0, Math.min(1, (viewportHeight - rect.top) / distance));
-      const active = rect.top < viewportHeight && rect.bottom > 0;
+      const distance = Math.max(1, rect.height);
+      const progress = Math.max(0, Math.min(1, -rect.top / distance));
+      const active = rect.top <= 0 && rect.bottom > 0;
       if (cameraActive !== active) {
         cameraActive = active;
         track.classList.toggle("is-camera-active", active);
@@ -136,9 +135,9 @@ function Index() {
       const radius = 12 + 410 * Math.pow(progress, 1.45);
       const clearRadius = Math.hypot(window.innerWidth, window.innerHeight) * 0.72 * Math.pow(progress, 1.1);
       track.style.setProperty("--iris-progress", String(progress));
-      const revealStart = viewportHeight / distance;
-      stage.style.setProperty("--camera-paper-cover", String(Math.max(0, Math.min(1, (1 - progress) / (1 - revealStart)))));
-      copy.style.opacity = String(Math.max(0, 1 - progress / 0.82));
+      const revealProgress = Math.max(0, Math.min(1, (progress - 0.32) / 0.46));
+      stage.style.setProperty("--camera-paper-cover", String(1 - revealProgress));
+      copy.style.opacity = String(Math.max(0, 1 - progress / 0.28));
       shade.style.setProperty("--iris-clear-radius", `${clearRadius}px`);
       lens.style.opacity = String(Math.max(0, Math.min(1, (0.94 - progress) / 0.23)));
       lens.style.transform = `scale(${0.88 + progress * 1.12}) rotate(${progress * 28}deg)`;
