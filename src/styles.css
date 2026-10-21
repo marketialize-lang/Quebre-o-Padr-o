@@ -174,8 +174,8 @@ button { -webkit-tap-highlight-color: transparent; }
 .project-poster::after { position: absolute; z-index: -1; right: -12%; bottom: -34%; width: 72%; aspect-ratio: 1; border: 1px solid currentColor; border-radius: 50%; opacity: .4; content: ""; }
 .project-poster-cover { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; transition: transform .8s cubic-bezier(.2,.65,.2,1), filter .4s; }
 .project-slide.is-active .project-poster-cover { transform: scale(1.045); filter: saturate(1.04); }
-.project-poster-cover-roadster { object-fit: contain; object-position: center; transform: scale(.84); }
-.project-slide.is-active .project-poster-cover-roadster { transform: scale(.84); filter: saturate(1.08) contrast(1.04); }
+.project-poster-cover-roadster { object-fit: contain; object-position: center; transform: scale(.68); }
+.project-slide.is-active .project-poster-cover-roadster { transform: scale(.68); filter: saturate(1.08) contrast(1.04); }
 .project-poster-cover-henrique, .project-poster-cover-prisma { object-position: center top; }
 .project-slide.is-active .project-poster-cover-henrique, .project-slide.is-active .project-poster-cover-prisma { transform: scale(1); }
 .project-poster-topline { position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 8px; color: #f4f1ea; font: 700 7px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .09em; text-shadow: 0 1px 12px rgba(0,0,0,.8); }
