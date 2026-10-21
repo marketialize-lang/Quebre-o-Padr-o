@@ -260,7 +260,7 @@ function Index() {
       if (nextIndex < 0 || nextIndex >= portfolioProjects.length) return;
       event.preventDefault();
       const now = performance.now();
-      const pause = activeProjectIndex === 2 ? 1350 : 720;
+      const pause = activeProjectIndex === 2 ? 1600 : 720;
       if (now - projectWheelCooldownRef.current < pause) return;
       projectWheelCooldownRef.current = now;
       projectAutoTouchedRef.current = true;
@@ -511,9 +511,14 @@ function Index() {
                       }}
                     >
                       <span className="project-poster-topline"><span>RF / DIGITAL</span><span>{project.niche}</span></span>
-                      <img className={`project-poster-cover${project.theme === "roadster" ? " project-poster-cover-roadster" : ""}`} src={project.cover} alt="" loading={index < 3 ? "eager" : "lazy"} decoding="async" />
+                      <img className={`project-poster-cover${project.theme === "roadster" ? " project-poster-cover-roadster" : project.theme === "henrique" ? " project-poster-cover-henrique" : project.theme === "prisma" ? " project-poster-cover-prisma" : ""}`} src={project.cover} alt="" loading={index < 3 ? "eager" : "lazy"} decoding="async" />
                       <span className="project-poster-index" aria-hidden="true">{project.number}</span>
-                      {project.theme === "roadster" && <span className="project-poster-label project-poster-label-roadster">PÁGINA CONCEITO</span>}
+                      {project.theme === "roadster" && (
+                        <span className="project-poster-copy project-poster-copy-roadster">
+                          <span className="project-poster-label">PÁGINA CONCEITO</span>
+                          <span className="project-poster-title">{project.name}</span>
+                        </span>
+                      )}
                       {project.theme !== "roadster" && (
                         <span className="project-poster-copy">
                           <span className="project-poster-label">PÁGINA CONCEITO</span>
