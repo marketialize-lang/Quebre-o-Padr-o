@@ -35,6 +35,8 @@ function Index() {
   const [paused, setPaused] = useState(false);
   const [shuffleKey, setShuffleKey] = useState(0);
   const [activeStoryStep, setActiveStoryStep] = useState(0);
+  const [activeProjectIndex, setActiveProjectIndex] = useState(0);
+  const projectsRailRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -193,6 +195,18 @@ function Index() {
     };
   }, []);
 
+  useEffect(() => {
+    const rail = projectsRailRef.current;
+    const activeSlide = rail?.querySelector<HTMLElement>(`[data-project-index="${activeProjectIndex}"]`);
+    if (!activeSlide) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    activeSlide.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest", inline: "center" });
+  }, [activeProjectIndex]);
+
+  const moveProject = (direction: number) => {
+    setActiveProjectIndex((index) => (index + direction + portfolioProjects.length) % portfolioProjects.length);
+  };
+
   const shuffleLetters = () => {
     setShuffleKey((key) => key + 1);
   };
@@ -343,43 +357,54 @@ function Index() {
             <span>RAFAEL FONSECA · SELEÇÃO DE PÁGINAS</span>
           </div>
           <div className="projects-intro">
-            <div>
-              <p className="projects-kicker"><span /> PORTFÓLIO DIGITAL</p>
-              <h2 id="projects-title">Dez ideias.<br /><em>Dez caminhos.</em></h2>
-            </div>
+            <p className="projects-kicker"><span /> PORTFÓLIO DIGITAL</p>
+            <h2 id="projects-title">Dez ideias.<br /><em>Dez caminhos.</em></h2>
             <div className="projects-aside">
               <p>Uma seleção de páginas conceito para explorar como estratégia e design mudam de acordo com cada mercado.</p>
               <span><strong>10</strong> PROJETOS NO AR</span>
             </div>
           </div>
 
-          <div className="projects-grid">
-            {portfolioProjects.map((project) => (
-              <a
-                className="project-card"
-                href={project.url}
-                key={project.number}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={'Abrir projeto ' + project.name + ' em nova aba'}
-              >
-                <div className={"project-card-visual project-visual-" + project.theme}>
-                  <div className="project-visual-topline"><span>RF / DIGITAL</span><span>{project.number}</span></div>
-                  <span className="project-visual-ghost" aria-hidden="true">{project.wordmark}</span>
-                  <span className="project-visual-wordmark">{project.wordmark}</span>
-                  <span className="project-visual-niche">{project.niche}</span>
-                  <span className="project-visual-open" aria-hidden="true"><ArrowUpRight size={21} /></span>
-                </div>
-                <div className="project-card-info">
-                  <div>
-                    <span className="project-card-number">PROJETO {project.number}</span>
-                    <h3>{project.name}</h3>
-                    <p>{project.descriptor}</p>
-                  </div>
-                  <span className="project-card-link">VISITAR PÁGINA <ArrowRight size={15} /></span>
-                </div>
-              </a>
-            ))}
+          <div className="projects-carousel-tools" aria-label="Navegação do portfólio">
+            <button type="button" onClick={() => moveProject(-1)} aria-label="Projeto anterior"><ArrowLeft size={17} /></button>
+            <span><strong>{String(activeProjectIndex + 1).padStart(2, "0")}</strong><i>/</i>{String(portfolioProjects.length).padStart(2, "0")}</span>
+            <button type="button" onClick={() => moveProject(1)} aria-label="Próximo projeto"><ArrowRight size={17} /></button>
+          </div>
+
+          <div className="projects-rail" role="region" aria-label="Projetos do portfólio. Arraste para os lados ou use as setas.">
+            <ol className="projects-track" ref={projectsRailRef}>
+              {portfolioProjects.map((project, index) => {
+                const isActive = activeProjectIndex === index;
+                const detailsId = `project-details-${project.number}`;
+                return (
+                  <li className={`project-slide${isActive ? " is-active" : ""}`} key={project.number} data-project-index={index}>
+                    <button
+                      className={`project-poster project-visual-${project.theme}`}
+                      type="button"
+                      aria-expanded={isActive}
+                      aria-controls={detailsId}
+                      onClick={() => setActiveProjectIndex(index)}
+                    >
+                      <span className="project-poster-topline"><span>RF / DIGITAL</span><span>{project.niche}</span></span>
+                      <span className="project-poster-index" aria-hidden="true">{project.number}</span>
+                      <span className="project-poster-copy">
+                        <span className="project-poster-label">PÁGINA CONCEITO</span>
+                        <span className="project-poster-name">{project.wordmark}</span>
+                        <span className="project-poster-title">{project.name}</span>
+                      </span>
+                    </button>
+                    <div className="project-details" id={detailsId} aria-hidden={!isActive}>
+                      <span className="project-detail-number">PROJETO {project.number} · {project.niche}</span>
+                      <h3>{project.name}</h3>
+                      <p>{project.descriptor}</p>
+                      <a href={project.url} target="_blank" rel="noreferrer" tabIndex={isActive ? 0 : -1}>
+                        VISITAR PÁGINA <ArrowUpRight size={16} aria-hidden="true" />
+                      </a>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
           </div>
 
           <footer className="projects-footer">
