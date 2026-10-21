@@ -514,9 +514,8 @@ function Index() {
                       <img className={`project-poster-cover${project.theme === "roadster" ? " project-poster-cover-roadster" : project.theme === "henrique" ? " project-poster-cover-henrique" : project.theme === "prisma" ? " project-poster-cover-prisma" : ""}`} src={project.cover} alt="" loading={index < 3 ? "eager" : "lazy"} decoding="async" />
                       <span className="project-poster-index" aria-hidden="true">{project.number}</span>
                       {project.theme === "roadster" && (
-                        <span className="project-poster-copy project-poster-copy-roadster">
+                        <span className="project-poster-copy">
                           <span className="project-poster-label">PÁGINA CONCEITO</span>
-                          <span className="project-poster-title">{project.name}</span>
                         </span>
                       )}
                       {project.theme !== "roadster" && (
