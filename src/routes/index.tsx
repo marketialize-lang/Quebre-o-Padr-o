@@ -39,6 +39,7 @@ function Index() {
   const projectsSectionRef = useRef<HTMLElement>(null);
   const projectsRailRef = useRef<HTMLUListElement>(null);
   const projectAutoTouchedRef = useRef(false);
+  const projectScrollTimerRef = useRef(0);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -427,7 +428,8 @@ function Index() {
             onPointerDown={() => { projectAutoTouchedRef.current = true; }}
             onScroll={(event) => {
               const rail = event.currentTarget;
-              window.requestAnimationFrame(() => {
+              window.clearTimeout(projectScrollTimerRef.current);
+              projectScrollTimerRef.current = window.setTimeout(() => {
                 const railRect = rail.getBoundingClientRect();
                 const center = railRect.left + rail.clientWidth / 2;
                 const slides = Array.from(rail.querySelectorAll<HTMLElement>("[data-project-index]"));
@@ -437,7 +439,7 @@ function Index() {
                   return distance < best.distance ? { index: Number(slide.dataset.projectIndex), distance } : best;
                 }, { index: activeProjectIndex, distance: Number.POSITIVE_INFINITY });
                 setActiveProjectIndex((current) => nearest.index === current ? current : nearest.index);
-              });
+              }, 110);
             }}
           >
             <ol className="projects-track" ref={projectsRailRef}>
