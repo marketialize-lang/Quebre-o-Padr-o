@@ -42,6 +42,7 @@ function Index() {
   const projectScrollTimerRef = useRef(0);
   const projectProgrammaticScrollRef = useRef(false);
   const projectProgrammaticScrollTimerRef = useRef(0);
+  const projectWheelCooldownRef = useRef(0);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -254,23 +255,24 @@ function Index() {
     if (!rail) return;
     const handleWheel = (event: WheelEvent) => {
       if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-      const delta = event.deltaMode === WheelEvent.DOM_DELTA_LINE
-        ? event.deltaY * 16
-        : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
-          ? event.deltaY * rail.clientWidth
-          : event.deltaY;
-      const nextScrollLeft = rail.scrollLeft + delta;
-      const maxScrollLeft = rail.scrollWidth - rail.clientWidth;
-      if (nextScrollLeft < 0 || nextScrollLeft > maxScrollLeft) return;
+      const direction = Math.sign(event.deltaY);
+      const nextIndex = activeProjectIndex + direction;
+      if (nextIndex < 0 || nextIndex >= portfolioProjects.length) return;
       event.preventDefault();
+      const now = performance.now();
+      if (now - projectWheelCooldownRef.current < 720) return;
+      projectWheelCooldownRef.current = now;
       projectAutoTouchedRef.current = true;
-      projectProgrammaticScrollRef.current = false;
+      projectProgrammaticScrollRef.current = true;
       window.clearTimeout(projectProgrammaticScrollTimerRef.current);
-      rail.scrollBy({ left: delta, behavior: "auto" });
+      projectProgrammaticScrollTimerRef.current = window.setTimeout(() => {
+        projectProgrammaticScrollRef.current = false;
+      }, 1400);
+      setActiveProjectIndex((index) => Math.max(0, Math.min(portfolioProjects.length - 1, index + direction)));
     };
     rail.addEventListener("wheel", handleWheel, { passive: false });
     return () => rail.removeEventListener("wheel", handleWheel);
-  }, []);
+  }, [activeProjectIndex]);
 
   const moveProject = (direction: number) => {
     projectAutoTouchedRef.current = true;
@@ -508,13 +510,15 @@ function Index() {
                       }}
                     >
                       <span className="project-poster-topline"><span>RF / DIGITAL</span><span>{project.niche}</span></span>
-                      <img className="project-poster-cover" src={project.cover} alt="" loading={index < 3 ? "eager" : "lazy"} decoding="async" />
+                      <img className={`project-poster-cover${project.theme === "roadster" ? " project-poster-cover-roadster" : ""}`} src={project.cover} alt="" loading={index < 3 ? "eager" : "lazy"} decoding="async" />
                       <span className="project-poster-index" aria-hidden="true">{project.number}</span>
-                      <span className="project-poster-copy">
-                        <span className="project-poster-label">PÁGINA CONCEITO</span>
-                        <span className="project-poster-name">{project.wordmark}</span>
-                        <span className="project-poster-title">{project.name}</span>
-                      </span>
+                      {project.theme !== "roadster" && (
+                        <span className="project-poster-copy">
+                          <span className="project-poster-label">PÁGINA CONCEITO</span>
+                          <span className="project-poster-name">{project.wordmark}</span>
+                          <span className="project-poster-title">{project.name}</span>
+                        </span>
+                      )}
                     </button>
                     <div className="project-details" id={detailsId} aria-hidden={!isActive}>
                       <span className="project-detail-number">PROJETO {project.number} · {project.niche}</span>
