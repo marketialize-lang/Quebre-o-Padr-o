@@ -131,7 +131,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .preview-art-2 img { filter: saturate(.55); transform: scale(1.13); }
 .preview-art-3 img { filter: contrast(1.12); transform: scale(1.04); }
 .preview-art-index, .preview-art-mark { position: absolute; z-index: 1; color: white; font: 700 8px/1.4 ui-monospace, monospace; letter-spacing: .1em; }
-.preview-art-index { top: 12px; right: 12px; padding: 6px 7px; border: 1px solid rgba(255,255,255,.6); }
+.preview-art-index { top: 8px; right: 8px; display: grid; width: 28px; height: 28px; place-items: center; padding: 0; border: 1px solid rgba(255,255,255,.72); background: rgba(17,17,17,.72); font-size: 5px; line-height: 1; letter-spacing: 0; text-align: center; }
 .preview-art-mark { right: 12px; bottom: 12px; left: 12px; font-size: clamp(12px, 1.3vw, 17px); line-height: .95; }
 .preview-footer { padding-top: 12px; border-top: 1px solid rgba(244,241,234,.22); }
 .preview-source { display: flex; justify-content: space-between; gap: 10px; margin-top: 10px; color: rgba(244,241,234,.62); font-size: 9px; line-height: 1.4; }
@@ -185,7 +185,7 @@ button { -webkit-tap-highlight-color: transparent; }
   .preview-stat { font-size: clamp(76px, 23vw, 112px); }
   .preview-cta { min-height: 34px; margin-top: 13px; padding: 0 8px; font-size: 7px; }
   .preview-art { min-height: 0; }
-  .preview-art-index { top: 7px; right: 7px; padding: 4px; font-size: 6px; }
+  .preview-art-index { top: 7px; right: 7px; }
   .preview-art-mark { right: 7px; bottom: 7px; left: 7px; font-size: 10px; }
   .preview-source { margin-top: 7px; font-size: 7px; }
   .preview-source a { font-size: 6px; }
