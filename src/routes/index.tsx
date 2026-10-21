@@ -13,16 +13,16 @@ const headlineLines = [
 ];
 
 const portfolioProjects = [
-  { number: "01", name: "AERIS X", niche: "AERONÁUTICA", descriptor: "Experiência digital para um drone conceito.", wordmark: "AERIS", theme: "aeris", url: "https://gregarious-biscochitos-146694.netlify.app/" },
-  { number: "02", name: "Gravyx", niche: "INTELIGÊNCIA ARTIFICIAL", descriptor: "Apresentação de uma plataforma de IA.", wordmark: "gravyx", theme: "gravyx", url: "https://gravyx-plataforma-ia-rafael.netlify.app/" },
-  { number: "03", name: "Tesla Roadster", niche: "AUTOMOTIVO", descriptor: "Página conceito com narrativa visual para o Roadster.", wordmark: "ROADSTER", theme: "roadster", url: "https://tesla-roadster-rafael.netlify.app/" },
-  { number: "04", name: "Entre", niche: "ESTÚDIO CRIATIVO", descriptor: "Presença digital para um estúdio de criação.", wordmark: "entre", theme: "entre", url: "https://entre-estudio-rafael.netlify.app/" },
-  { number: "05", name: "Dr. Henrique Salles", niche: "ODONTOLOGIA", descriptor: "Página de apresentação para implantodontia.", wordmark: "HS", theme: "henrique", url: "https://dr-henrique-salles-rafael.netlify.app/" },
-  { number: "06", name: "Altano", niche: "MERCADO IMOBILIÁRIO", descriptor: "Experiência para imobiliárias e corretores.", wordmark: "ALTANO", theme: "altano", url: "https://altano-imobiliarias-rafael.netlify.app/" },
-  { number: "07", name: "Advocacia Varela", niche: "JURÍDICO", descriptor: "Presença institucional para um escritório de advocacia.", wordmark: "VARELA", theme: "varela", url: "https://advocacia-varela-rafael.netlify.app/" },
-  { number: "08", name: "Corvelo", niche: "BARBEARIA", descriptor: "Identidade digital para uma barbearia.", wordmark: "CORVELO", theme: "corvelo", url: "https://corvelo-barbearia-rafael.netlify.app/" },
-  { number: "09", name: "Método Prisma", niche: "EDUCAÇÃO DIGITAL", descriptor: "Página de apresentação para um infoproduto.", wordmark: "PRISMA", theme: "prisma", url: "https://metodo-prisma-rafael.netlify.app/" },
-  { number: "10", name: "HALO Beauty Lab", niche: "BELEZA", descriptor: "Experiência digital para um salão de beleza.", wordmark: "HALO", theme: "halo", url: "https://halo-beauty-lab-rafael.netlify.app/" },
+  { number: "01", name: "AERIS X", niche: "AERONÁUTICA", descriptor: "Experiência digital para um drone conceito.", wordmark: "AERIS", theme: "aeris", cover: "/portfolio-aeris.jpg", url: "https://gregarious-biscochitos-146694.netlify.app/" },
+  { number: "02", name: "Gravyx", niche: "INTELIGÊNCIA ARTIFICIAL", descriptor: "Apresentação de uma plataforma de IA.", wordmark: "gravyx", theme: "gravyx", cover: "/portfolio-gravyx.webp", url: "https://gravyx-plataforma-ia-rafael.netlify.app/" },
+  { number: "03", name: "Tesla Roadster", niche: "AUTOMOTIVO", descriptor: "Página conceito com narrativa visual para o Roadster.", wordmark: "ROADSTER", theme: "roadster", cover: "/portfolio-tesla.jpg", url: "https://tesla-roadster-rafael.netlify.app/" },
+  { number: "04", name: "Entre", niche: "ESTÚDIO CRIATIVO", descriptor: "Presença digital para um estúdio de criação.", wordmark: "entre", theme: "entre", cover: "/portfolio-entre.jpg", url: "https://entre-estudio-rafael.netlify.app/" },
+  { number: "05", name: "Dr. Henrique Salles", niche: "ODONTOLOGIA", descriptor: "Página de apresentação para implantodontia.", wordmark: "HS", theme: "henrique", cover: "/portfolio-henrique.webp", url: "https://dr-henrique-salles-rafael.netlify.app/" },
+  { number: "06", name: "Altano", niche: "MERCADO IMOBILIÁRIO", descriptor: "Experiência para imobiliárias e corretores.", wordmark: "ALTANO", theme: "altano", cover: "/portfolio-altano.webp", url: "https://altano-imobiliarias-rafael.netlify.app/" },
+  { number: "07", name: "Advocacia Varela", niche: "JURÍDICO", descriptor: "Presença institucional para um escritório de advocacia.", wordmark: "VARELA", theme: "varela", cover: "/portfolio-varela.webp", url: "https://advocacia-varela-rafael.netlify.app/" },
+  { number: "08", name: "Corvelo", niche: "BARBEARIA", descriptor: "Identidade digital para uma barbearia.", wordmark: "CORVELO", theme: "corvelo", cover: "https://images.unsplash.com/photo-1702865263661-9da5ecf6f374?auto=format&fit=crop&w=1024&h=1280&q=70", url: "https://corvelo-barbearia-rafael.netlify.app/" },
+  { number: "09", name: "Método Prisma", niche: "EDUCAÇÃO DIGITAL", descriptor: "Página de apresentação para um infoproduto.", wordmark: "PRISMA", theme: "prisma", cover: "/portfolio-prisma.webp", url: "https://metodo-prisma-rafael.netlify.app/" },
+  { number: "10", name: "HALO Beauty Lab", niche: "BELEZA", descriptor: "Experiência digital para um salão de beleza.", wordmark: "HALO", theme: "halo", cover: "/portfolio-halo.webp", url: "https://halo-beauty-lab-rafael.netlify.app/" },
 ];
 
 
@@ -425,6 +425,20 @@ function Index() {
             role="region"
             aria-label="Projetos do portfólio. Arraste para os lados ou use as setas."
             onPointerDown={() => { projectAutoTouchedRef.current = true; }}
+            onScroll={(event) => {
+              const rail = event.currentTarget;
+              window.requestAnimationFrame(() => {
+                const railRect = rail.getBoundingClientRect();
+                const center = railRect.left + rail.clientWidth / 2;
+                const slides = Array.from(rail.querySelectorAll<HTMLElement>("[data-project-index]"));
+                const nearest = slides.reduce((best, slide) => {
+                  const rect = slide.getBoundingClientRect();
+                  const distance = Math.abs(rect.left + rect.width / 2 - center);
+                  return distance < best.distance ? { index: Number(slide.dataset.projectIndex), distance } : best;
+                }, { index: activeProjectIndex, distance: Number.POSITIVE_INFINITY });
+                setActiveProjectIndex((current) => nearest.index === current ? current : nearest.index);
+              });
+            }}
           >
             <ol className="projects-track" ref={projectsRailRef}>
               {portfolioProjects.map((project, index) => {
@@ -456,6 +470,7 @@ function Index() {
                       }}
                     >
                       <span className="project-poster-topline"><span>RF / DIGITAL</span><span>{project.niche}</span></span>
+                      <img className="project-poster-cover" src={project.cover} alt="" loading={index < 3 ? "eager" : "lazy"} decoding="async" />
                       <span className="project-poster-index" aria-hidden="true">{project.number}</span>
                       <span className="project-poster-copy">
                         <span className="project-poster-label">PÁGINA CONCEITO</span>
@@ -478,8 +493,18 @@ function Index() {
           </div>
 
           <footer className="projects-footer">
-            <span>ESTUDOS E PÁGINAS CONCEITO · RAFAEL FONSECA</span>
-            <a href="#top">VOLTAR AO TOPO <ArrowUpRight size={14} /></a>
+            <div className="projects-footer-count" aria-label="10 projetos em diferentes mercados">
+              <span className="projects-footer-markers" aria-hidden="true"><i>01</i><i>02</i><i>03</i></span>
+              <span><strong>10 PROJETOS</strong><small>EM DIFERENTES MERCADOS</small></span>
+            </div>
+            <div className="projects-footer-navigation" aria-label="Navegar entre projetos">
+              <button type="button" onClick={() => moveProject(-1)} aria-label="Projeto anterior"><ArrowLeft size={15} /></button>
+              <span>{String(activeProjectIndex + 1).padStart(2, "0")} <i>/</i> 10</span>
+              <button type="button" onClick={() => moveProject(1)} aria-label="Próximo projeto"><ArrowRight size={15} /></button>
+            </div>
+            <a className="projects-footer-cta" href={portfolioProjects[activeProjectIndex].url} target="_blank" rel="noreferrer">
+              ABRIR {portfolioProjects[activeProjectIndex].name.toUpperCase()} <ArrowUpRight size={14} />
+            </a>
           </footer>
         </div>
       </section>
