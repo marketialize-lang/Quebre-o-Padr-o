@@ -125,9 +125,9 @@ function Index() {
       }
 
       const rect = track.getBoundingClientRect();
-      const distance = Math.max(1, rect.height);
+      const distance = Math.max(1, rect.height - stage.offsetHeight);
       const progress = Math.max(0, Math.min(1, -rect.top / distance));
-      const active = rect.top <= 0 && rect.bottom > 0;
+      const active = rect.top < window.innerHeight && rect.bottom > 0;
       if (cameraActive !== active) {
         cameraActive = active;
         track.classList.toggle("is-camera-active", active);
