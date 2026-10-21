@@ -40,6 +40,8 @@ function Index() {
   const projectsRailRef = useRef<HTMLUListElement>(null);
   const projectAutoTouchedRef = useRef(false);
   const projectScrollTimerRef = useRef(0);
+  const projectProgrammaticScrollRef = useRef(false);
+  const projectProgrammaticScrollTimerRef = useRef(0);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -247,13 +249,46 @@ function Index() {
     };
   }, [activeProjectIndex]);
 
+  useEffect(() => {
+    const rail = projectsRailRef.current?.parentElement;
+    if (!rail) return;
+    const handleWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      const delta = event.deltaMode === WheelEvent.DOM_DELTA_LINE
+        ? event.deltaY * 16
+        : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+          ? event.deltaY * rail.clientWidth
+          : event.deltaY;
+      const nextScrollLeft = rail.scrollLeft + delta;
+      const maxScrollLeft = rail.scrollWidth - rail.clientWidth;
+      if (nextScrollLeft < 0 || nextScrollLeft > maxScrollLeft) return;
+      event.preventDefault();
+      projectAutoTouchedRef.current = true;
+      projectProgrammaticScrollRef.current = false;
+      window.clearTimeout(projectProgrammaticScrollTimerRef.current);
+      rail.scrollBy({ left: delta, behavior: "auto" });
+    };
+    rail.addEventListener("wheel", handleWheel, { passive: false });
+    return () => rail.removeEventListener("wheel", handleWheel);
+  }, []);
+
   const moveProject = (direction: number) => {
     projectAutoTouchedRef.current = true;
+    projectProgrammaticScrollRef.current = true;
+    window.clearTimeout(projectProgrammaticScrollTimerRef.current);
+    projectProgrammaticScrollTimerRef.current = window.setTimeout(() => {
+      projectProgrammaticScrollRef.current = false;
+    }, 1400);
     setActiveProjectIndex((index) => (index + direction + portfolioProjects.length) % portfolioProjects.length);
   };
 
   const selectProject = (index: number) => {
     projectAutoTouchedRef.current = true;
+    projectProgrammaticScrollRef.current = true;
+    window.clearTimeout(projectProgrammaticScrollTimerRef.current);
+    projectProgrammaticScrollTimerRef.current = window.setTimeout(() => {
+      projectProgrammaticScrollRef.current = false;
+    }, 1400);
     setActiveProjectIndex(index);
   };
 
@@ -425,8 +460,13 @@ function Index() {
             className="projects-rail"
             role="region"
             aria-label="Projetos do portfólio. Arraste para os lados ou use as setas."
-            onPointerDown={() => { projectAutoTouchedRef.current = true; }}
+            onPointerDown={() => {
+              projectAutoTouchedRef.current = true;
+              projectProgrammaticScrollRef.current = false;
+              window.clearTimeout(projectProgrammaticScrollTimerRef.current);
+            }}
             onScroll={(event) => {
+              if (projectProgrammaticScrollRef.current) return;
               const rail = event.currentTarget;
               window.clearTimeout(projectScrollTimerRef.current);
               projectScrollTimerRef.current = window.setTimeout(() => {
@@ -456,13 +496,9 @@ function Index() {
                       onClick={() => selectProject(index)}
                       onPointerEnter={(event) => {
                         if (event.pointerType !== "mouse") return;
-                        projectAutoTouchedRef.current = true;
-                        if (!isActive) setActiveProjectIndex(index);
+                        if (!isActive) selectProject(index);
                       }}
-                      onFocus={() => {
-                        projectAutoTouchedRef.current = true;
-                        setActiveProjectIndex(index);
-                      }}
+                      onFocus={() => selectProject(index)}
                       onKeyDown={(event) => {
                         if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
                         event.preventDefault();
