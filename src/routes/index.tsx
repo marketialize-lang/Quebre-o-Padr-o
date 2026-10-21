@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play, Shuffle } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -31,7 +31,7 @@ const servicePlans = [
     name: "Página objetiva",
     description: "Para apresentar seu serviço ou oferta com uma estrutura direta e bem organizada.",
     price: 497,
-    timeline: "Até 2 dias",
+    timeline: { days: 2, label: "dias" },
     emphasis: "Uma página mais direta",
   },
   {
@@ -39,7 +39,7 @@ const servicePlans = [
     name: "Página estratégica",
     description: "Para projetos que precisam apresentar mais contexto e organizar diferentes partes da oferta.",
     price: 1000,
-    timeline: "Até 3 dias úteis",
+    timeline: { days: 3, label: "dias úteis" },
     emphasis: "Mais camadas de conteúdo",
   },
   {
@@ -47,22 +47,25 @@ const servicePlans = [
     name: "Página completa",
     description: "Para uma apresentação mais elaborada, com estrutura e copy persuasiva.",
     price: 1500,
-    timeline: "Até 3 dias úteis",
+    timeline: { days: 3, label: "dias úteis" },
     emphasis: "Estrutura e copy persuasiva",
   },
 ];
 
-function PriceOdometer({ value }: { value: number }) {
+function PriceOdometer({ value, className = "" }: { value: number; className?: string }) {
   const formatted = value.toLocaleString("pt-BR");
+  const digitCount = (formatted.match(/\d/g) ?? []).length;
+  let digitPosition = 0;
   return (
-    <span className="pricing-amount" aria-hidden="true">
+    <span className={`pricing-amount${className ? ` ${className}` : ""}`} aria-hidden="true">
       {formatted.split("").map((character, index) => {
         if (!/\d/.test(character)) return <span className="pricing-thousands" key={`separator-${index}`}>{character}</span>;
-        const rollTo = Number(character);
+        const rollTo = Number(character) + 10 * (digitCount - digitPosition);
+        const wheelOrder = digitPosition++;
         return (
           <span className="pricing-digit-window" key={`digit-${index}`}>
-            <span className="pricing-digit-strip" data-wheel-index={rollTo}>
-              {Array.from({ length: 10 }, (_, digit) => <span key={digit}>{digit}</span>)}
+            <span className="pricing-digit-strip" data-wheel-index={rollTo} style={{ "--wheel-delay": `${wheelOrder * 95}ms` } as CSSProperties}>
+              {Array.from({ length: 50 }, (_, digit) => <span key={digit}>{digit % 10}</span>)}
             </span>
           </span>
         );
@@ -86,6 +89,7 @@ function Index() {
   const [shuffleKey, setShuffleKey] = useState(0);
   const [activeStoryStep, setActiveStoryStep] = useState(0);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
+  const [pricingCameraActive, setPricingCameraActive] = useState(false);
   const [pricingMode, setPricingMode] = useState<"investment" | "timeline">("investment");
   const projectsSectionRef = useRef<HTMLElement>(null);
   const projectsRailRef = useRef<HTMLUListElement>(null);
@@ -106,11 +110,13 @@ function Index() {
     const blades = Array.from(bladesGroup.querySelectorAll<SVGPathElement>("path"));
     const bladeCount = blades.length;
     const outerRadius = 430;
+    let cameraActive = false;
     let frame = 0;
 
     const update = () => {
       frame = 0;
       if (reduceMotion) {
+        if (cameraActive) { cameraActive = false; setPricingCameraActive(false); }
         track.style.setProperty("--iris-progress", "1");
         shade.style.setProperty("--iris-clear-radius", "150vmax");
         lens.style.opacity = "0";
@@ -118,8 +124,10 @@ function Index() {
       }
 
       const rect = track.getBoundingClientRect();
-      const distance = Math.max(1, rect.height - window.innerHeight);
+      const distance = Math.max(1, rect.height);
       const progress = Math.max(0, Math.min(1, -rect.top / distance));
+      const active = rect.top <= 0 && rect.bottom > 0;
+      if (cameraActive !== active) { cameraActive = active; setPricingCameraActive(active); }
       const radius = 12 + 410 * Math.pow(progress, 1.45);
       const clearRadius = Math.hypot(window.innerWidth, window.innerHeight) * 0.72 * Math.pow(progress, 1.1);
       track.style.setProperty("--iris-progress", String(progress));
@@ -167,14 +175,24 @@ function Index() {
   }, []);
 
   useEffect(() => {
-    const prices = Array.from(document.querySelectorAll<HTMLElement>(".pricing-price-line"));
+    const prices = Array.from(document.querySelectorAll<HTMLElement>(".pricing-roll-line"));
     if (!prices.length) return;
+    prices.forEach((price) => {
+      price.classList.remove("is-rolling");
+      price.querySelectorAll<HTMLElement>(".pricing-digit-strip").forEach((strip) => {
+        strip.style.transition = "none";
+        strip.style.transform = "translateY(0em)";
+      });
+    });
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
-        entry.target.classList.add("is-rolling");
-        entry.target.querySelectorAll<HTMLElement>(".pricing-digit-strip").forEach((strip) => {
-          strip.style.transform = `translateY(-${strip.dataset.wheelIndex}em)`;
+        window.requestAnimationFrame(() => {
+          entry.target.classList.add("is-rolling");
+          entry.target.querySelectorAll<HTMLElement>(".pricing-digit-strip").forEach((strip) => {
+            strip.style.transition = "";
+            strip.style.transform = `translateY(-${strip.dataset.wheelIndex}em)`;
+          });
         });
         observer.unobserve(entry.target);
       });
@@ -696,7 +714,7 @@ function Index() {
         </div>
       </section>
       <section id="contato" className="pricing-section" aria-labelledby="pricing-title">
-        <div className="pricing-entry-track" ref={pricingTrackRef}>
+        <div className={`pricing-entry-track${pricingCameraActive ? " is-camera-active" : ""}`} ref={pricingTrackRef}>
           <div className="pricing-entry-stage">
             <div className="pricing-entry-copy">
               <p className="pricing-kicker"><span /> 04 / INVESTIMENTO</p>
@@ -745,7 +763,8 @@ function Index() {
             <p className="pricing-kicker"><span /> PÁGINAS E SITES</p>
             <h3>Escolha o escopo<br /><em>do seu projeto.</em></h3>
             <p>Os valores são por projeto. Todos começam com um briefing completo.</p>
-            <div className="pricing-mode-switch" role="group" aria-label="Alternar informação dos planos">
+            <div className={`pricing-mode-switch${pricingMode === "timeline" ? " is-timeline" : ""}`} role="group" aria-label="Alternar informação dos planos">
+              <span className="pricing-mode-knob" aria-hidden="true" />
               <button type="button" className={pricingMode === "investment" ? "is-active" : ""} aria-pressed={pricingMode === "investment"} onClick={() => setPricingMode("investment")}>Investimento</button>
               <button type="button" className={pricingMode === "timeline" ? "is-active" : ""} aria-pressed={pricingMode === "timeline"} onClick={() => setPricingMode("timeline")}>Prazo estimado</button>
             </div>
@@ -760,14 +779,16 @@ function Index() {
                 <p className="pricing-card-description">{plan.description}</p>
                 <div className={`pricing-price-block${pricingMode === "timeline" ? " is-hidden" : ""}`} aria-hidden={pricingMode !== "investment"}>
                   <span className="pricing-price-label">INVESTIMENTO POR PROJETO</span>
-                  <div className="pricing-price-line" aria-label={`R$ ${plan.price.toLocaleString("pt-BR")} por projeto`}>
+                  <div className="pricing-price-line pricing-roll-line" aria-label={`R$ ${plan.price.toLocaleString("pt-BR")} por projeto`}>
                     <span className="pricing-currency">R$</span>
                     <PriceOdometer value={plan.price} />
                   </div>
                 </div>
                 <div className={`pricing-price-block pricing-timeline-block${pricingMode === "investment" ? " is-hidden" : ""}`} aria-hidden={pricingMode !== "timeline"}>
                   <span className="pricing-price-label">PRAZO ESTIMADO</span>
-                  <p className="pricing-timeline-value">{plan.timeline}</p>
+                  <p className="pricing-timeline-value pricing-roll-line" aria-label={`Até ${plan.timeline.days} ${plan.timeline.label}`}>
+                    <span>Até</span><PriceOdometer value={plan.timeline.days} className="pricing-timeline-odometer" /><span>{plan.timeline.label}</span>
+                  </p>
                 </div>
                 <a className="pricing-card-link" href="#briefing">
                   Entenda a próxima etapa <ArrowUpRight size={16} aria-hidden="true" />
