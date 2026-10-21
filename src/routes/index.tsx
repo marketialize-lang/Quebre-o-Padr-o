@@ -36,7 +36,9 @@ function Index() {
   const [shuffleKey, setShuffleKey] = useState(0);
   const [activeStoryStep, setActiveStoryStep] = useState(0);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
+  const projectsSectionRef = useRef<HTMLElement>(null);
   const projectsRailRef = useRef<HTMLUListElement>(null);
+  const projectAutoTouchedRef = useRef(false);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -196,19 +198,62 @@ function Index() {
   }, []);
 
   useEffect(() => {
+    const section = projectsSectionRef.current;
+    if (!section) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let timer = 0;
+    let visible = false;
+    const advance = () => {
+      if (projectAutoTouchedRef.current || !visible || reduceMotion) return;
+      setActiveProjectIndex((index) => (index + 1) % portfolioProjects.length);
+      timer = window.setTimeout(advance, 2600);
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      window.clearTimeout(timer);
+      if (visible && !projectAutoTouchedRef.current && !reduceMotion) timer = window.setTimeout(advance, 1800);
+    }, { threshold: 0.25 });
+    observer.observe(section);
+    return () => {
+      window.clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
     const track = projectsRailRef.current;
     const rail = track?.parentElement;
     const activeSlide = track?.querySelector<HTMLElement>(`[data-project-index="${activeProjectIndex}"]`);
     if (!rail || !activeSlide) return;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const railRect = rail.getBoundingClientRect();
-    const slideRect = activeSlide.getBoundingClientRect();
-    const slideCenter = rail.scrollLeft + slideRect.left - railRect.left + slideRect.width / 2;
-    rail.scrollTo({ left: slideCenter - rail.clientWidth / 2, behavior: reduceMotion ? "auto" : "smooth" });
+    let fallback = 0;
+    const alignActive = () => {
+      const railRect = rail.getBoundingClientRect();
+      const slideRect = activeSlide.getBoundingClientRect();
+      const slideCenter = rail.scrollLeft + slideRect.left - railRect.left + slideRect.width / 2;
+      rail.scrollTo({ left: slideCenter - rail.clientWidth / 2, behavior: reduceMotion ? "auto" : "smooth" });
+    };
+    const finishExpansion = (event: TransitionEvent) => {
+      if (event.propertyName !== "flex-basis") return;
+      window.clearTimeout(fallback);
+      alignActive();
+    };
+    activeSlide.addEventListener("transitionend", finishExpansion);
+    fallback = window.setTimeout(alignActive, reduceMotion ? 0 : 700);
+    return () => {
+      window.clearTimeout(fallback);
+      activeSlide.removeEventListener("transitionend", finishExpansion);
+    };
   }, [activeProjectIndex]);
 
   const moveProject = (direction: number) => {
+    projectAutoTouchedRef.current = true;
     setActiveProjectIndex((index) => (index + direction + portfolioProjects.length) % portfolioProjects.length);
+  };
+
+  const selectProject = (index: number) => {
+    projectAutoTouchedRef.current = true;
+    setActiveProjectIndex(index);
   };
 
   const shuffleLetters = () => {
@@ -354,7 +399,7 @@ function Index() {
           </div>
         </div>
       </section>
-      <section id="portfolio" className="projects-section" aria-labelledby="projects-title">
+      <section ref={projectsSectionRef} id="portfolio" className="projects-section" aria-labelledby="projects-title">
         <div className="projects-shell">
           <div className="projects-topline">
             <span>03 / PROJETOS EM DIFERENTES MERCADOS</span>
@@ -375,7 +420,12 @@ function Index() {
             <button type="button" onClick={() => moveProject(1)} aria-label="Próximo projeto"><ArrowRight size={17} /></button>
           </div>
 
-          <div className="projects-rail" role="region" aria-label="Projetos do portfólio. Arraste para os lados ou use as setas.">
+          <div
+            className="projects-rail"
+            role="region"
+            aria-label="Projetos do portfólio. Arraste para os lados ou use as setas."
+            onPointerDown={() => { projectAutoTouchedRef.current = true; }}
+          >
             <ol className="projects-track" ref={projectsRailRef}>
               {portfolioProjects.map((project, index) => {
                 const isActive = activeProjectIndex === index;
@@ -387,7 +437,23 @@ function Index() {
                       type="button"
                       aria-expanded={isActive}
                       aria-controls={detailsId}
-                      onClick={() => setActiveProjectIndex(index)}
+                      onClick={() => selectProject(index)}
+                      onPointerEnter={(event) => {
+                        if (event.pointerType !== "mouse") return;
+                        projectAutoTouchedRef.current = true;
+                        if (!isActive) setActiveProjectIndex(index);
+                      }}
+                      onFocus={() => {
+                        projectAutoTouchedRef.current = true;
+                        setActiveProjectIndex(index);
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+                        event.preventDefault();
+                        const nextIndex = (index + (event.key === "ArrowRight" ? 1 : -1) + portfolioProjects.length) % portfolioProjects.length;
+                        moveProject(event.key === "ArrowRight" ? 1 : -1);
+                        requestAnimationFrame(() => projectsRailRef.current?.querySelectorAll<HTMLButtonElement>(".project-poster")[nextIndex]?.focus({ preventScroll: true }));
+                      }}
                     >
                       <span className="project-poster-topline"><span>RF / DIGITAL</span><span>{project.niche}</span></span>
                       <span className="project-poster-index" aria-hidden="true">{project.number}</span>
