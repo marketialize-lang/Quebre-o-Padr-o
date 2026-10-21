@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDown, ArrowRight, ArrowUpRight, Pause, Play, Shuffle } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play, Shuffle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export const Route = createFileRoute("/")({
@@ -196,11 +196,15 @@ function Index() {
   }, []);
 
   useEffect(() => {
-    const rail = projectsRailRef.current;
-    const activeSlide = rail?.querySelector<HTMLElement>(`[data-project-index="${activeProjectIndex}"]`);
-    if (!activeSlide) return;
+    const track = projectsRailRef.current;
+    const rail = track?.parentElement;
+    const activeSlide = track?.querySelector<HTMLElement>(`[data-project-index="${activeProjectIndex}"]`);
+    if (!rail || !activeSlide) return;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    activeSlide.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest", inline: "center" });
+    const railRect = rail.getBoundingClientRect();
+    const slideRect = activeSlide.getBoundingClientRect();
+    const slideCenter = rail.scrollLeft + slideRect.left - railRect.left + slideRect.width / 2;
+    rail.scrollTo({ left: slideCenter - rail.clientWidth / 2, behavior: reduceMotion ? "auto" : "smooth" });
   }, [activeProjectIndex]);
 
   const moveProject = (direction: number) => {
