@@ -160,6 +160,7 @@ function Index() {
     const railFill = proofRailFillRef.current;
     const railHead = proofRailHeadRef.current;
     if (!section || !proofPanel || !counter || !railFill || !railHead) return;
+    const heading = section.querySelector<HTMLElement>(".credibility-copy h2");
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const revealItems = Array.from(section.querySelectorAll<HTMLElement>(".scroll-reveal"));
@@ -184,6 +185,15 @@ function Index() {
       const progress = reduceMotion
         ? 1
         : Math.max(0, Math.min(1, (start - proofRect.top) / (start - end)));
+
+      if (heading) {
+        const headingRect = heading.getBoundingClientRect();
+        const headingRange = headingRect.height + viewport * 0.67;
+        const headingProgress = reduceMotion
+          ? 0
+          : Math.max(0, Math.min(1, (viewport * 0.82 - headingRect.top) / headingRange));
+        heading.style.setProperty("--scroll-fill", `${(headingProgress * 100).toFixed(2)}%`);
+      }
 
       counter.textContent = String(Math.round(66 * progress));
       railFill.style.transform = `scaleY(${progress})`;
