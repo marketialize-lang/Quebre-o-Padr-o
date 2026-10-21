@@ -15,15 +15,12 @@ const headlineLines = [
 function Index() {
   const stageRef = useRef<HTMLDivElement>(null);
   const credibilitySectionRef = useRef<HTMLElement>(null);
-  const proofPanelRef = useRef<HTMLElement>(null);
-  const proofCountRef = useRef<HTMLSpanElement>(null);
-  const proofRailFillRef = useRef<HTMLSpanElement>(null);
-  const proofRailHeadRef = useRef<HTMLSpanElement>(null);
   const rulerRef = useRef<HTMLDivElement>(null);
   const rulerMarkRef = useRef<HTMLSpanElement>(null);
   const rulerTagRef = useRef<HTMLElement>(null);
   const [paused, setPaused] = useState(false);
   const [shuffleKey, setShuffleKey] = useState(0);
+  const [activeStoryStep, setActiveStoryStep] = useState(0);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -155,49 +152,17 @@ function Index() {
 
   useEffect(() => {
     const section = credibilitySectionRef.current;
-    const proofPanel = proofPanelRef.current;
-    const counter = proofCountRef.current;
-    const railFill = proofRailFillRef.current;
-    const railHead = proofRailHeadRef.current;
-    if (!section || !proofPanel || !counter || !railFill || !railHead) return;
-    const heading = section.querySelector<HTMLElement>(".credibility-copy h2");
-
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const revealItems = Array.from(section.querySelectorAll<HTMLElement>(".scroll-reveal"));
-    const revealObserver = "IntersectionObserver" in window
-      ? new IntersectionObserver((entries) => {
-          entries.forEach((entry) => {
-            (entry.target as HTMLElement).dataset.revealed = entry.isIntersecting ? "true" : "false";
-          });
-        }, { threshold: 0.08, rootMargin: "-5% 0px -10% 0px" })
-      : null;
-    if (revealObserver) revealItems.forEach((item) => revealObserver.observe(item));
-    else revealItems.forEach((item) => { item.dataset.revealed = "true"; });
-    section.dataset.scrollReady = "true";
+    if (!section) return;
     let frame = 0;
 
     const update = () => {
       frame = 0;
-      const proofRect = proofPanel.getBoundingClientRect();
       const viewport = window.innerHeight;
-      const start = viewport * 0.9;
-      const end = viewport * 0.18;
-      const progress = reduceMotion
-        ? 1
-        : Math.max(0, Math.min(1, (start - proofRect.top) / (start - end)));
-
-      if (heading) {
-        const headingRect = heading.getBoundingClientRect();
-        const headingRange = headingRect.height + viewport * 0.67;
-        const headingProgress = reduceMotion
-          ? 0
-          : Math.max(0, Math.min(1, (viewport * 0.82 - headingRect.top) / headingRange));
-        heading.style.setProperty("--scroll-fill", `${(headingProgress * 100).toFixed(2)}%`);
-      }
-
-      counter.textContent = String(Math.round(66 * progress));
-      railFill.style.transform = `scaleY(${progress})`;
-      railHead.style.top = `${progress * 100}%`;
+      const rect = section.getBoundingClientRect();
+      const scrollRange = Math.max(1, rect.height - viewport);
+      const progress = Math.max(0, Math.min(0.9999, -rect.top / scrollRange));
+      setActiveStoryStep(Math.min(3, Math.floor(progress * 4)));
+      section.style.setProperty("--story-progress", `${progress * 100}%`);
     };
 
     const requestUpdate = () => {
@@ -210,7 +175,6 @@ function Index() {
     return () => {
       window.removeEventListener("scroll", requestUpdate);
       window.removeEventListener("resize", requestUpdate);
-      revealObserver?.disconnect();
       if (frame) cancelAnimationFrame(frame);
     };
   }, []);
@@ -305,46 +269,56 @@ function Index() {
       <section ref={credibilitySectionRef} className="credibility-section" aria-labelledby="credibility-title">
         <div className="credibility-shell">
           <div className="credibility-topline">
-            <span>02 / A PRESENÇA ANTES DA CONVERSA</span>
+            <span>02 / DA DESCOBERTA À CONFIANÇA</span>
             <span>QUEBRE O PADRÃO · RAFAEL FONSECA</span>
           </div>
 
           <div className="credibility-layout">
             <div className="credibility-copy">
-              <p className="credibility-kicker scroll-reveal"><span /> O PADRÃO QUE VALE A PENA QUEBRAR</p>
-              <h2 id="credibility-title" className="scroll-reveal">
-                <span className="credibility-heading-desktop">Um site genérico pode<br />fazer um bom negócio<br />parecer igual a todos.</span>
-                <span className="credibility-heading-mobile">Um site genérico<br />pode fazer um bom<br />negócio parecer<br />igual a todos.</span>
+              <p className="credibility-kicker"><span /> O PADRÃO QUE VALE A PENA QUEBRAR</p>
+              <h2 id="credibility-title">
+                Antes da conversa,<br />sua página já fala.
               </h2>
-              <p className="credibility-body scroll-reveal">
-                Alguém recebe seu nome por indicação, encontra um anúncio ou visita seu perfil. Antes de chamar, pode procurar mais informações sobre o que você faz. Se a página é confusa, desatualizada ou poderia pertencer a qualquer empresa, fica mais difícil perceber o cuidado por trás do seu trabalho.
-              </p>
-              <div className="credibility-takeaway scroll-reveal">
-                <span>UMA PÁGINA COM INTENÇÃO</span>
-                <p>Organiza a mensagem, mostra o que você oferece e deixa o próximo passo claro.</p>
+              <div className="story-steps" aria-label="Etapas da experiência de quem visita sua página">
+                {[
+                  { title: "A descoberta", text: "Alguém recebe seu nome por indicação, encontra um anúncio ou visita seu perfil." },
+                  { title: "A clareza", text: "Antes de chamar, procura entender melhor o que você faz e oferece." },
+                  { title: "A confiança", text: "Uma presença própria ajuda a apresentar seu negócio com mais clareza." },
+                  { title: "O próximo passo", text: "Uma página com intenção organiza a mensagem e deixa o caminho claro." },
+                ].map((step, index) => (
+                  <article className={`story-step${activeStoryStep === index ? " is-active" : ""}`} key={step.title} aria-current={activeStoryStep === index ? "step" : undefined}>
+                    <span className="story-step-number">0{index + 1}</span>
+                    <div><h3>{step.title}</h3><p>{step.text}</p></div>
+                  </article>
+                ))}
               </div>
             </div>
 
-            <aside ref={proofPanelRef} className="credibility-proof scroll-reveal" aria-label="Dado de pesquisa sobre confiança em empresas com site">
-              <span className="proof-rail" aria-hidden="true">
-                <span className="proof-rail-fill" ref={proofRailFillRef} />
-                <span className="proof-rail-head" ref={proofRailHeadRef} />
-              </span>
-              <div className="proof-label"><span>UM DADO SOBRE CREDIBILIDADE</span><span>01 — PESQUISA</span></div>
-              <div className="proof-number" role="img" aria-label="66 por cento">
-                <span className="proof-count" ref={proofCountRef} aria-hidden="true">0</span><span aria-hidden="true">%</span>
+            <aside className="story-preview" data-step={activeStoryStep} aria-label={`Prévia ilustrativa, etapa ${activeStoryStep + 1} de 4`}>
+              <div className="preview-topbar"><span className="preview-brand">RF<span>/</span></span><span>QUEBRE O PADRÃO</span><span className="preview-window-dots"><i /><i /><i /></span></div>
+              <div className="preview-progress"><span /></div>
+              <div className="preview-content">
+                <div className="preview-copy" key={activeStoryStep}>
+                  <span className="preview-eyebrow">{["A PRIMEIRA IMPRESSÃO", "MENSAGEM COM INTENÇÃO", "UM DADO DE PESQUISA", "O PRÓXIMO PASSO"][activeStoryStep]}</span>
+                  {activeStoryStep === 0 && <><p className="preview-headline">Seu trabalho<br /><em>merece ser visto.</em></p><span className="preview-note">Uma presença digital que começa com você.</span></>}
+                  {activeStoryStep === 1 && <><p className="preview-headline">Clareza para<br /><em>ser entendido.</em></p><span className="preview-note">O que você faz. Para quem. E como começar.</span></>}
+                  {activeStoryStep === 2 && <><p className="preview-stat">66<span>%</span></p><span className="preview-note">dos consumidores pesquisados associam site próprio a mais confiança.</span></>}
+                  {activeStoryStep === 3 && <><p className="preview-headline">Vamos criar<br /><em>sua página?</em></p><span className="preview-cta">VAMOS CONVERSAR <ArrowRight size={15} /></span></>}
+                </div>
+                <div className={`preview-art preview-art-${activeStoryStep}`} aria-hidden="true">
+                  <img src="/rafael-fonseca-hero.jpg" alt="" />
+                  <span className="preview-art-index">0{activeStoryStep + 1} / 04</span>
+                  <span className="preview-art-mark">QUEBRE<br />O PADRÃO</span>
+                </div>
               </div>
-              <p className="proof-copy">dos consumidores pesquisados concordaram que uma empresa com site próprio parece mais confiável do que uma empresa sem site.</p>
-              <div className="proof-source">
-                <span>Pesquisa encomendada pela Verisign à 451 Research, com 5.450 consumidores. O levantamento mediu percepção, não aumento de vendas.</span>
-                <a href="https://www.verisign.com/assets/Websites_BrandedEmail_Key_SMB_Internet_Services.pdf" target="_blank" rel="noreferrer">CONSULTAR A FONTE <ArrowRight size={14} aria-hidden="true" /></a>
-              </div>
+              <div className="preview-footer"><span>ESTRATÉGIA · DESIGN · PRESENÇA DIGITAL</span><span>0{activeStoryStep + 1} — 04</span></div>
+              {activeStoryStep === 2 && <div className="preview-source"><span>Pesquisa Verisign / 451 Research · 5.450 consumidores</span><a href="https://www.verisign.com/assets/Websites_BrandedEmail_Key_SMB_Internet_Services.pdf" target="_blank" rel="noreferrer">VER A FONTE <ArrowRight size={13} /></a></div>}
             </aside>
           </div>
 
           <div className="credibility-footer">
             <span>DESIGN QUE MOSTRA O QUE TORNA SEU NEGÓCIO PRÓPRIO.</span>
-            <span>CONTINUA ↓</span>
+            <span>ROLE PARA EXPLORAR <ArrowDown size={12} /></span>
           </div>
         </div>
       </section>
