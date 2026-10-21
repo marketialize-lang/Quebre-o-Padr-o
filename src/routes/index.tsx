@@ -89,7 +89,6 @@ function Index() {
   const [shuffleKey, setShuffleKey] = useState(0);
   const [activeStoryStep, setActiveStoryStep] = useState(0);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
-  const [pricingCameraActive, setPricingCameraActive] = useState(false);
   const [pricingMode, setPricingMode] = useState<"investment" | "timeline">("investment");
   const projectsSectionRef = useRef<HTMLElement>(null);
   const projectsRailRef = useRef<HTMLUListElement>(null);
@@ -104,7 +103,9 @@ function Index() {
     const shade = pricingShadeRef.current;
     const lens = pricingLensRef.current;
     const bladesGroup = pricingBladesRef.current;
-    if (!track || !shade || !lens || !bladesGroup) return;
+    const stage = track?.querySelector<HTMLElement>(".pricing-entry-stage");
+    const copy = stage?.querySelector<HTMLElement>(".pricing-entry-copy");
+    if (!track || !shade || !lens || !bladesGroup || !stage || !copy) return;
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const blades = Array.from(bladesGroup.querySelectorAll<SVGPathElement>("path"));
@@ -116,7 +117,7 @@ function Index() {
     const update = () => {
       frame = 0;
       if (reduceMotion) {
-        if (cameraActive) { cameraActive = false; setPricingCameraActive(false); }
+        if (cameraActive) { cameraActive = false; track.classList.remove("is-camera-active"); }
         track.style.setProperty("--iris-progress", "1");
         shade.style.setProperty("--iris-clear-radius", "150vmax");
         lens.style.opacity = "0";
@@ -124,13 +125,20 @@ function Index() {
       }
 
       const rect = track.getBoundingClientRect();
-      const distance = Math.max(1, rect.height);
-      const progress = Math.max(0, Math.min(1, -rect.top / distance));
-      const active = rect.top <= 0 && rect.bottom > 0;
-      if (cameraActive !== active) { cameraActive = active; setPricingCameraActive(active); }
+      const viewportHeight = window.innerHeight;
+      const distance = Math.max(1, viewportHeight + rect.height);
+      const progress = Math.max(0, Math.min(1, (viewportHeight - rect.top) / distance));
+      const active = rect.top < viewportHeight && rect.bottom > 0;
+      if (cameraActive !== active) {
+        cameraActive = active;
+        track.classList.toggle("is-camera-active", active);
+      }
       const radius = 12 + 410 * Math.pow(progress, 1.45);
       const clearRadius = Math.hypot(window.innerWidth, window.innerHeight) * 0.72 * Math.pow(progress, 1.1);
       track.style.setProperty("--iris-progress", String(progress));
+      const revealStart = viewportHeight / distance;
+      stage.style.setProperty("--camera-paper-cover", String(Math.max(0, Math.min(1, (1 - progress) / (1 - revealStart)))));
+      copy.style.opacity = String(Math.max(0, 1 - progress / 0.82));
       shade.style.setProperty("--iris-clear-radius", `${clearRadius}px`);
       lens.style.opacity = String(Math.max(0, Math.min(1, (0.94 - progress) / 0.23)));
       lens.style.transform = `scale(${0.88 + progress * 1.12}) rotate(${progress * 28}deg)`;
@@ -166,10 +174,13 @@ function Index() {
 
     window.addEventListener("scroll", requestUpdate, { passive: true });
     window.addEventListener("resize", requestUpdate);
+    window.addEventListener("pageshow", requestUpdate);
     update();
+    window.requestAnimationFrame(() => window.requestAnimationFrame(requestUpdate));
     return () => {
       window.removeEventListener("scroll", requestUpdate);
       window.removeEventListener("resize", requestUpdate);
+      window.removeEventListener("pageshow", requestUpdate);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
@@ -714,7 +725,7 @@ function Index() {
         </div>
       </section>
       <section id="contato" className="pricing-section" aria-labelledby="pricing-title">
-        <div className={`pricing-entry-track${pricingCameraActive ? " is-camera-active" : ""}`} ref={pricingTrackRef}>
+        <div className="pricing-entry-track" ref={pricingTrackRef}>
           <div className="pricing-entry-stage">
             <div className="pricing-entry-copy">
               <p className="pricing-kicker"><span /> 04 / INVESTIMENTO</p>

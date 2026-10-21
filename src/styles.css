@@ -221,8 +221,8 @@ button { -webkit-tap-highlight-color: transparent; }
 .projects-footer-cta:hover svg { color: #111; }
 
 .pricing-section { position: relative; overflow: clip; color: var(--ink); background: var(--paper); }
-.pricing-entry-track { position: relative; height: 80svh; --iris-progress: 0; }
-.pricing-entry-stage { position: fixed; z-index: 30; inset: 0; height: 100svh; min-height: 0; overflow: hidden; isolation: isolate; background: var(--paper); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .28s ease, visibility .28s ease; }
+.pricing-entry-track { position: relative; height: 48svh; --iris-progress: 0; }
+.pricing-entry-stage { position: fixed; z-index: 30; inset: 0; height: 100svh; min-height: 0; overflow: hidden; isolation: isolate; background: color-mix(in srgb, var(--paper) calc(var(--camera-paper-cover, 1) * 100%), transparent); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .28s ease, visibility .28s ease; }
 .pricing-entry-track.is-camera-active .pricing-entry-stage { opacity: 1; visibility: visible; }
 .pricing-entry-copy { position: absolute; z-index: 1; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px; text-align: center; opacity: calc(1 - var(--iris-progress)); }
 .pricing-kicker { display: flex; align-items: center; gap: 9px; margin: 0 0 22px; color: #65615b; font: 700 9px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; }
@@ -330,7 +330,7 @@ button { -webkit-tap-highlight-color: transparent; }
   .footer-center { display: none; }
 }
 @media (max-width: 640px) {
-  .pricing-entry-track { height: 80svh; }
+  .pricing-entry-track { height: 48svh; }
   .pricing-entry-stage { min-height: 0; }
   .pricing-entry-copy { padding: 28px 20px; }
   .pricing-entry-copy h2 { font-size: clamp(47px, 12.5vw, 70px); }
