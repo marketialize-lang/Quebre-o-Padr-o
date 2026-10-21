@@ -181,7 +181,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .project-poster-index { position: absolute; z-index: 0; top: 55px; right: -8px; color: rgba(244,241,234,.05); font-size: 205px; font-weight: 800; letter-spacing: -.12em; line-height: .8; opacity: .9; -webkit-text-stroke: 1.5px rgba(244,241,234,.78); pointer-events: none; }
 .project-poster-copy { position: relative; z-index: 1; display: flex; width: 100%; flex-direction: column; align-items: center; gap: 6px; color: #f4f1ea; text-align: center; text-shadow: 0 2px 18px rgba(0,0,0,.45); }
 .project-poster-label { padding: 6px 8px; border: 1px solid rgba(244,241,234,.4); color: rgba(244,241,234,.8); font: 700 7px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
-.project-poster-label-roadster { position: absolute; z-index: 2; top: 46px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+.project-poster-label-roadster { position: absolute; z-index: 2; bottom: 20px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
 .project-poster-name { max-width: 100%; overflow: hidden; font-size: clamp(36px, 5vw, 66px); font-weight: 800; letter-spacing: -.1em; line-height: .85; text-overflow: ellipsis; }
 .project-poster-title { color: rgba(244,241,234,.76); font-size: 12px; text-align: center; }
 .project-visual-aeris { color: #eff0e8; background: linear-gradient(145deg, #314a4b, #121c21 72%); }

@@ -260,7 +260,8 @@ function Index() {
       if (nextIndex < 0 || nextIndex >= portfolioProjects.length) return;
       event.preventDefault();
       const now = performance.now();
-      if (now - projectWheelCooldownRef.current < 720) return;
+      const pause = activeProjectIndex === 2 ? 1350 : 720;
+      if (now - projectWheelCooldownRef.current < pause) return;
       projectWheelCooldownRef.current = now;
       projectAutoTouchedRef.current = true;
       projectProgrammaticScrollRef.current = true;
