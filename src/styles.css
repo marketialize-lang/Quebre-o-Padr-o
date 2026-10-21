@@ -185,7 +185,7 @@ button { -webkit-tap-highlight-color: transparent; }
   .preview-stat { font-size: clamp(76px, 23vw, 112px); }
   .preview-cta { min-height: 34px; margin-top: 13px; padding: 0 8px; font-size: 7px; }
   .preview-art { min-height: 0; }
-  .preview-art-index { top: 7px; right: 7px; }
+  .preview-art-index { top: 5px; right: 5px; width: 20px; height: 20px; font-size: 4px; line-height: 1.1; }
   .preview-art-mark { right: 7px; bottom: 7px; left: 7px; font-size: 10px; }
   .preview-source { margin-top: 7px; font-size: 7px; }
   .preview-source a { font-size: 6px; }
