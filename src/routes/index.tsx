@@ -350,7 +350,7 @@ function ProjectGuarantee() {
               <g className="project-guarantee-pan" transform={`translate(103 ${panLeftY})`}>
                 <path d="M0 0v27m-78 0v123m78-123v123m78-123v123" fill="none" stroke="#927344" strokeWidth="2" strokeDasharray="2 5" />
                 <rect x="-82" y="27" width="164" height="7" rx="3" fill="url(#guarantee-brass)" />
-                {placement?.side === "client" && <g className={`project-guarantee-weight project-guarantee-client-weight is-${placement.phase}`} transform="translate(0 99)"><rect x="-72" y="-10" width="144" height="23" rx="4" fill="#f4f1ea" stroke="#b08d57" /><text y="5" textAnchor="middle">{guaranteeConcerns[placement.index].weight}</text></g>}
+                {placement?.side === "client" && <g className={`project-guarantee-weight project-guarantee-client-weight is-${placement.phase}`} transform="translate(0 99)"><g className="project-guarantee-weight-motion"><rect x="-72" y="-10" width="144" height="23" rx="4" fill="#f4f1ea" stroke="#b08d57" /><text y="5" textAnchor="middle">{guaranteeConcerns[placement.index].weight}</text></g></g>}
                 <path d="M-90 151H90c-7 24-37 33-90 33s-83-9-90-33z" fill="url(#guarantee-pan)" />
                 <rect x="-93" y="147" width="186" height="7" rx="3" fill="url(#guarantee-brass)" />
                 <text className="project-guarantee-plate-label" y="211" textAnchor="middle">SEU LADO</text>
@@ -358,8 +358,8 @@ function ProjectGuarantee() {
               <g className="project-guarantee-pan" transform={`translate(457 ${panRightY})`}>
                 <path d="M0 0v27m-78 0v123m78-123v123m78-123v123" fill="none" stroke="#927344" strokeWidth="2" strokeDasharray="2 5" />
                 <rect x="-82" y="27" width="164" height="7" rx="3" fill="url(#guarantee-brass)" />
-                {servicePlans.map((plan, index) => <g className={`project-guarantee-weight project-guarantee-commitment${isVisible ? " is-entered" : ""}`} style={{ "--weight-delay": `${index * 220}ms` } as CSSProperties} transform={`translate(0 ${91 + index * 22})`} key={plan.number}><rect x="-75" y="-9" width="150" height="19" rx="4" fill="#c32f1b" /><text y="4" textAnchor="middle">SUPORTE · {plan.supportDays} DIAS</text></g>)}
-                {placement?.side === "commitment" && <g className={`project-guarantee-weight is-${placement.phase}`} transform="translate(0 60)"><rect x="-75" y="-9" width="150" height="19" rx="4" fill="#111" /><text y="4" textAnchor="middle">{guaranteeConcerns[placement.index].weight} ALINHADO</text></g>}
+                {servicePlans.map((plan, index) => <g className={`project-guarantee-weight project-guarantee-commitment${isVisible ? " is-entered" : ""}`} style={{ "--weight-delay": `${index * 220}ms` } as CSSProperties} transform={`translate(0 ${91 + index * 22})`} key={plan.number}><g className="project-guarantee-weight-drop"><rect x="-75" y="-9" width="150" height="19" rx="4" fill="#c32f1b" /><text y="4" textAnchor="middle">SUPORTE · {plan.supportDays} DIAS</text></g></g>)}
+                {placement?.side === "commitment" && <g className={`project-guarantee-weight is-${placement.phase}${placement.phase === "settled" ? " is-returning" : ""}`} transform="translate(0 60)"><g className="project-guarantee-weight-motion"><rect x="-75" y="-9" width="150" height="19" rx="4" fill="#111" /><text y="4" textAnchor="middle">{guaranteeConcerns[placement.index].weight} ALINHADO</text></g></g>}
                 <path d="M-90 151H90c-7 24-37 33-90 33s-83-9-90-33z" fill="url(#guarantee-pan)" />
                 <rect x="-93" y="147" width="186" height="7" rx="3" fill="url(#guarantee-brass)" />
                 <text className="project-guarantee-plate-label" y="211" textAnchor="middle">NOSSO COMPROMISSO</text>
