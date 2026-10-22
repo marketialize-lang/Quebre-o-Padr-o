@@ -110,6 +110,8 @@ function Index() {
   const [fitDragX, setFitDragX] = useState(0);
   const [fitExitDirection, setFitExitDirection] = useState<"yes" | "no" | null>(null);
   const [activeProcessStep, setActiveProcessStep] = useState(0);
+  const processSectionRef = useRef<HTMLElement>(null);
+  const processAutoTouchedRef = useRef(false);
   const fitPointerStart = useRef<number | null>(null);
   const fitExitTimerRef = useRef(0);
   const projectsSectionRef = useRef<HTMLElement>(null);
@@ -119,6 +121,30 @@ function Index() {
   const projectProgrammaticScrollRef = useRef(false);
   const projectProgrammaticScrollTimerRef = useRef(0);
   const projectWheelCooldownRef = useRef(0);
+
+  useEffect(() => {
+    const section = processSectionRef.current;
+    if (!section || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let visible = false;
+    let timer = 0;
+    const advance = () => {
+      if (!visible || processAutoTouchedRef.current) return;
+      setActiveProcessStep((current) => (current + 1) % processSteps.length);
+      timer = window.setTimeout(advance, 2800);
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      window.clearTimeout(timer);
+      if (visible && !processAutoTouchedRef.current) timer = window.setTimeout(advance, 1100);
+    }, { threshold: 0.35 });
+
+    observer.observe(section);
+    return () => {
+      window.clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     const track = pricingTrackRef.current;
@@ -905,15 +931,23 @@ function Index() {
         </div>
         <div className="fit-footer"><span>RAFAEL FONSECA · ESTRATÉGIA, DESIGN E PRESENÇA DIGITAL</span><a href="#contato">VER OS PLANOS <ArrowUpRight size={13} /></a></div>
       </section>
-      <section className="process-section" aria-labelledby="process-title">
+      <section ref={processSectionRef} className={`process-section${activeProcessStep === processSteps.length - 1 ? " is-process-complete" : ""}`} aria-labelledby="process-title" onPointerMove={(event) => {
+        if (event.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const bounds = event.currentTarget.getBoundingClientRect();
+        event.currentTarget.style.setProperty("--process-mx", (((event.clientX - bounds.left) / bounds.width - 0.5) * 2).toFixed(3));
+        event.currentTarget.style.setProperty("--process-my", (((event.clientY - bounds.top) / bounds.height - 0.5) * 2).toFixed(3));
+      }} onPointerLeave={(event) => {
+        event.currentTarget.style.setProperty("--process-mx", "0");
+        event.currentTarget.style.setProperty("--process-my", "0");
+      }}>
         <div className="process-shell">
           <div className="process-copy">
             <p className="process-kicker"><span /> 06 / COMO FUNCIONA</p>
             <h2 id="process-title">Do primeiro alinhamento<br /><em>à página no ar.</em></h2>
             <p className="process-lead">Um caminho claro para transformar seu briefing em uma presença digital pronta para apresentar seu trabalho.</p>
-            <div className="process-steps" role="tablist" aria-label="Etapas do projeto" onKeyDown={(event) => { if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return; event.preventDefault(); const direction = event.key === "ArrowRight" ? 1 : -1; const next = (activeProcessStep + direction + processSteps.length) % processSteps.length; setActiveProcessStep(next); document.getElementById(`process-tab-${next}`)?.focus(); }}>
+            <div className="process-steps" role="tablist" aria-label="Etapas do projeto" onKeyDown={(event) => { if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return; event.preventDefault(); const direction = event.key === "ArrowRight" ? 1 : -1; const next = (activeProcessStep + direction + processSteps.length) % processSteps.length; processAutoTouchedRef.current = true; setActiveProcessStep(next); document.getElementById(`process-tab-${next}`)?.focus(); }}>
               {processSteps.map((step, index) => (
-                <button className={`process-step${activeProcessStep === index ? " is-active" : ""}`} type="button" role="tab" aria-selected={activeProcessStep === index} aria-controls="process-screen" id={`process-tab-${index}`} key={step.label} onClick={() => setActiveProcessStep(index)}>
+                <button className={`process-step${activeProcessStep === index ? " is-active" : ""}`} type="button" role="tab" aria-selected={activeProcessStep === index} aria-controls="process-screen" id={`process-tab-${index}`} key={step.label} onClick={() => { processAutoTouchedRef.current = true; setActiveProcessStep(index); }}>
                   <span className="process-step-number">0{index + 1}</span>
                   <span className="process-step-copy"><strong>{step.label}</strong><small>{step.title}</small></span>
                   <ArrowUpRight size={15} aria-hidden="true" />
@@ -925,7 +959,7 @@ function Index() {
           </div>
           <div className="process-visual" aria-live="polite">
             <span className="process-glow" aria-hidden="true" />
-            <div className="process-phone">
+            <div className="process-phone" key={activeProcessStep}>
               <div className="process-phone-screen">
                 <div className="process-phone-top"><span>RF<span>/</span> DIGITAL</span><i /></div>
                 <div className="process-phone-time">{String(activeProcessStep + 1).padStart(2, "0")}<small> / 04</small></div>
