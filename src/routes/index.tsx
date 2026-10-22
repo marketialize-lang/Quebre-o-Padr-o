@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play, Shuffle } from "lucide-react";
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -68,6 +68,16 @@ const processSteps = [
   { label: "REVISÃO E ENTREGA", title: "Conferimos e colocamos no ar.", description: "Depois dos ajustes previstos no escopo, você recebe a página pronta para compartilhar.", screen: "Projeto publicado", note: "Revisado e pronto para acessar", time: "ETAPA 04" },
 ];
 
+const portfolioStoryExamples = [
+  "Quero que a página mostre a ideia do projeto antes mesmo de explicar cada detalhe.",
+  "É mais fácil entender a proposta quando as informações estão bem organizadas.",
+  "Uma apresentação visual marcante ajuda a contar a história desse conceito.",
+  "A identidade do projeto aparece sem competir com a mensagem.",
+  "Ficou mais simples mostrar o que torna essa ideia diferente.",
+  "O visual combina com o mercado em que esse projeto se apresenta.",
+  "Agora há um caminho claro para conhecer e explorar esse conceito.",
+];
+
 function PriceOdometer({ value, className = "" }: { value: number; className?: string }) {
   const formatted = value.toLocaleString("pt-BR");
   const digitCount = (formatted.match(/\d/g) ?? []).length;
@@ -87,6 +97,138 @@ function PriceOdometer({ value, className = "" }: { value: number; className?: s
         );
       })}
     </span>
+  );
+}
+
+function PortfolioStories() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const railRef = useRef<HTMLDivElement>(null);
+  const pointerRef = useRef<{ id: number; x: number; y: number; held: boolean } | null>(null);
+  const holdTimerRef = useRef(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isInView, setIsInView] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [hasFocus, setHasFocus] = useState(false);
+  const [isHolding, setIsHolding] = useState(false);
+  const [isPageHidden, setIsPageHidden] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const activeProject = portfolioProjects[activeIndex];
+  const paused = isPaused || isHovered || hasFocus || isHolding || isPageHidden || !isInView;
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const observer = new IntersectionObserver(([entry]) => setIsInView(entry.isIntersecting && entry.intersectionRatio > 0.12), { threshold: [0, 0.12, 0.3, 0.5] });
+    observer.observe(section);
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updateMotionPreference = () => setPrefersReducedMotion(media.matches);
+    const updateVisibility = () => setIsPageHidden(document.hidden);
+    updateMotionPreference();
+    updateVisibility();
+    media.addEventListener("change", updateMotionPreference);
+    document.addEventListener("visibilitychange", updateVisibility);
+    return () => {
+      observer.disconnect();
+      media.removeEventListener("change", updateMotionPreference);
+      document.removeEventListener("visibilitychange", updateVisibility);
+      window.clearTimeout(holdTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (paused || prefersReducedMotion) return;
+    const timer = window.setTimeout(() => setActiveIndex((current) => (current + 1) % portfolioStoryExamples.length), 5600);
+    return () => window.clearTimeout(timer);
+  }, [activeIndex, paused, prefersReducedMotion]);
+
+  const selectStory = (index: number) => {
+    setActiveIndex((index + portfolioStoryExamples.length) % portfolioStoryExamples.length);
+    const rail = railRef.current;
+    const button = document.getElementById(`portfolio-story-tab-${index}`);
+    if (rail && button && rail.scrollWidth > rail.clientWidth + 2) {
+      rail.scrollTo({ left: button.offsetLeft - (rail.clientWidth - button.offsetWidth) / 2, behavior: prefersReducedMotion ? "auto" : "smooth" });
+    }
+  };
+
+  const finishPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const pointer = pointerRef.current;
+    if (!pointer || pointer.id !== event.pointerId) return;
+    window.clearTimeout(holdTimerRef.current);
+    const wasHolding = pointer.held;
+    pointerRef.current = null;
+    if (wasHolding) { setIsHolding(false); return; }
+    const deltaX = event.clientX - pointer.x;
+    const deltaY = event.clientY - pointer.y;
+    if (Math.abs(deltaX) > 48 && Math.abs(deltaX) > Math.abs(deltaY) * 1.25) selectStory(activeIndex + (deltaX < 0 ? 1 : -1));
+  };
+
+  return (
+    <section ref={sectionRef} className={`portfolio-stories${paused || prefersReducedMotion ? " is-paused" : ""}`} aria-labelledby="portfolio-stories-title" onFocusCapture={() => setHasFocus(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHasFocus(false); }}>
+      <div className="portfolio-stories-shell">
+        <div className="portfolio-stories-copy">
+          <p className="portfolio-stories-kicker"><span /> 07 / STORIES DE PROJETOS</p>
+          <p className="portfolio-stories-disclosure">DEMONSTRAÇÃO · FALAS FICTÍCIAS</p>
+          <h2 id="portfolio-stories-title">Uma ideia bem apresentada<br /><em>fica na memória.</em></h2>
+          <p className="portfolio-stories-lead">Explore cenários ilustrativos inspirados nos projetos conceito do portfólio.</p>
+          <p className="portfolio-stories-notice">As falas são fictícias e não representam relatos de clientes nem resultados reais.</p>
+
+          <div ref={railRef} className="portfolio-stories-rail" role="tablist" aria-label="Escolha um projeto conceito">
+            {portfolioProjects.slice(0, portfolioStoryExamples.length).map((project, index) => (
+              <button className={`portfolio-story-tab${activeIndex === index ? " is-active" : ""}`} type="button" role="tab" aria-selected={activeIndex === index} aria-controls="portfolio-story-panel" id={`portfolio-story-tab-${index}`} key={project.number} onClick={() => selectStory(index)} onKeyDown={(event) => {
+                if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) return;
+                event.preventDefault();
+                const next = event.key === "Home" ? 0 : event.key === "End" ? portfolioStoryExamples.length - 1 : activeIndex + (event.key === "ArrowRight" ? 1 : -1);
+                selectStory(next);
+                document.getElementById(`portfolio-story-tab-${(next + portfolioStoryExamples.length) % portfolioStoryExamples.length}`)?.focus();
+              }}>
+                <span className="portfolio-story-ring"><span>{project.number}</span></span>
+                <span className="portfolio-story-tab-name">{project.name}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="portfolio-stories-controls">
+            <button type="button" className="portfolio-stories-arrow" aria-label="Projeto anterior" onClick={() => selectStory(activeIndex - 1)}><ArrowLeft size={16} /></button>
+            <span className="portfolio-stories-count">{String(activeIndex + 1).padStart(2, "0")} <i>/</i> {String(portfolioStoryExamples.length).padStart(2, "0")}</span>
+            <button type="button" className="portfolio-stories-arrow" aria-label="Próximo projeto" onClick={() => selectStory(activeIndex + 1)}><ArrowRight size={16} /></button>
+            <button type="button" className="portfolio-stories-pause" aria-pressed={isPaused} onClick={() => setIsPaused((value) => !value)}>
+              {isPaused ? <Play size={14} /> : <Pause size={14} />}{isPaused ? "RETOMAR" : "PAUSAR"}
+            </button>
+          </div>
+        </div>
+
+        <div className="portfolio-stories-viewer" onPointerEnter={(event) => { if (event.pointerType === "mouse") setIsHovered(true); }} onPointerLeave={(event) => { if (event.pointerType === "mouse") setIsHovered(false); }}>
+          <span className="portfolio-stories-glow" aria-hidden="true" />
+          <div className="portfolio-stories-phone">
+            <div className="portfolio-stories-screen" onPointerDown={(event) => {
+              if (event.button !== 0 || (event.target as HTMLElement).closest("a,button")) return;
+              pointerRef.current = { id: event.pointerId, x: event.clientX, y: event.clientY, held: false };
+              holdTimerRef.current = window.setTimeout(() => { if (pointerRef.current) { pointerRef.current.held = true; setIsHolding(true); } }, 260);
+            }} onPointerUp={finishPointer} onPointerCancel={(event) => { window.clearTimeout(holdTimerRef.current); if (pointerRef.current?.id === event.pointerId) { pointerRef.current = null; setIsHolding(false); } }}>
+              <div className="portfolio-stories-progress" aria-hidden="true">
+                {portfolioStoryExamples.map((_, index) => <span key={index} className={index < activeIndex ? "is-done" : index === activeIndex ? "is-current" : ""}><i key={activeIndex === index ? activeIndex : undefined} /></span>)}
+              </div>
+              <div className="portfolio-stories-profile"><span className="portfolio-stories-avatar">{activeProject.number}</span><span><strong>{activeProject.name}</strong><small>{activeProject.niche} · CONCEITO</small></span><span className="portfolio-stories-time">EXEMPLO</span></div>
+              <div className="portfolio-stories-story" id="portfolio-story-panel" role="tabpanel" aria-labelledby={`portfolio-story-tab-${activeIndex}`} key={activeProject.number}>
+                <span className="portfolio-stories-story-label">CENÁRIO FICTÍCIO · {activeProject.niche}</span>
+                <blockquote>“{portfolioStoryExamples[activeIndex]}”</blockquote>
+                <span className="portfolio-stories-sticker">EXEMPLO ILUSTRATIVO</span>
+              </div>
+              <a className="portfolio-stories-visit" href={activeProject.url} target="_blank" rel="noreferrer">VER PÁGINA CONCEITO <ArrowUpRight size={14} /></a>
+              <div className="portfolio-stories-touch-hint" aria-hidden="true">SEGURE PARA PAUSAR · DESLIZE PARA TROCAR</div>
+            </div>
+          </div>
+          <span className="portfolio-stories-caption">{activeProject.name} · {activeProject.niche}</span>
+        </div>
+      </div>
+
+      <div className="portfolio-stories-footer">
+        <div><strong>10</strong><span>PROJETOS CONCEITO</span></div>
+        <div><strong>10</strong><span>SEGMENTOS</span></div>
+        <div className="portfolio-stories-footer-note">CENÁRIOS E FALAS FICTÍCIAS, APENAS PARA DEMONSTRAR O FORMATO</div>
+      </div>
+    </section>
   );
 }
 
@@ -978,6 +1120,7 @@ function Index() {
         </div>
         <div className="process-footer"><span>RAFAEL FONSECA · ESTRATÉGIA, DESIGN E PRESENÇA DIGITAL</span><a href="#briefing">VAMOS CONVERSAR <ArrowUpRight size={13} /></a></div>
       </section>
+      <PortfolioStories />
     </main>
   );
 }
