@@ -18,8 +18,14 @@ export const Route = createFileRoute("/_authenticated/painel")({
     ],
   }),
   beforeLoad: async ({ context }) => {
-    const { data } = await supabase.rpc("has_role", { _user_id: context.user.id, _role: "admin" });
-    if (!data) {
+    try {
+      const { data, error } = await supabase.rpc("has_role", { _user_id: context.user.id, _role: "admin" });
+      if (error || !data) {
+        await supabase.auth.signOut();
+        throw redirect({ to: "/auth", search: { negado: 1 } });
+      }
+    } catch (error) {
+      if (isRedirect(error)) throw error;
       await supabase.auth.signOut();
       throw redirect({ to: "/auth", search: { negado: 1 } });
     }

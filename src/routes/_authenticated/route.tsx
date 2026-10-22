@@ -16,4 +16,11 @@ export const Route = createFileRoute("/_authenticated")({
     }
   },
   component: () => <Outlet />,
+  pendingComponent: () => (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+        Verificando acesso…
+      </p>
+    </div>
+  ),
 });
