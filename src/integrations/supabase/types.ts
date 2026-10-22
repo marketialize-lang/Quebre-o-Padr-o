@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      briefings: {
+        Row: {
+          consentimento: boolean
+          conteudo: string | null
+          created_at: string
+          detalhes: string | null
+          email: string
+          id: string
+          negocio: string
+          nome: string
+          objetivo: string
+          plano: string
+          prazo: string
+          referencias: string | null
+          status: string
+          whatsapp: string | null
+        }
+        Insert: {
+          consentimento: boolean
+          conteudo?: string | null
+          created_at?: string
+          detalhes?: string | null
+          email: string
+          id?: string
+          negocio: string
+          nome: string
+          objetivo: string
+          plano: string
+          prazo: string
+          referencias?: string | null
+          status?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          consentimento?: boolean
+          conteudo?: string | null
+          created_at?: string
+          detalhes?: string | null
+          email?: string
+          id?: string
+          negocio?: string
+          nome?: string
+          objetivo?: string
+          plano?: string
+          prazo?: string
+          referencias?: string | null
+          status?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
