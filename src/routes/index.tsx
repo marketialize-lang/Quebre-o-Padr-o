@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { FaqAssistant } from "@/components/faq-assistant";
+import { BriefingForm } from "@/components/briefing-form";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play, ShieldCheck, Shuffle } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 
