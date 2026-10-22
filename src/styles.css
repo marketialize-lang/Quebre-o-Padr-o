@@ -707,7 +707,7 @@ button { -webkit-tap-highlight-color: transparent; }
   .pricing-camera-meter { right: 10%; bottom: 8%; left: 10%; }
   .pricing-content { padding: 24px 18px 22px; }
   .pricing-content-heading { margin-bottom: 29px; }
-  .pricing-content-heading h3 { font-size: clamp(42px, 11.8vw, 62px); }
+  .pricing-content-heading h3 { font-size: clamp(36px, 10.6vw, 48px); letter-spacing: -.045em; line-height: .98; }
   .pricing-content-heading > p:not(.pricing-mode-note) { max-width: 340px; font-size: 13px; }
   .pricing-mode-switch { margin-top: 18px; }
   .pricing-mode-switch button { min-width: 122px; min-height: 38px; padding-inline: 10px; font-size: 10px; }
