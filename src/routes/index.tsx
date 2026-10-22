@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play, Shuffle } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play, ShieldCheck, Shuffle } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 
 export const Route = createFileRoute("/")({
@@ -31,6 +31,7 @@ const servicePlans = [
     name: "Página objetiva",
     description: "Para apresentar seu serviço ou oferta com uma estrutura direta e bem organizada.",
     price: 497,
+    supportDays: 7,
     timeline: { days: 2, label: "dias" },
     emphasis: "Uma página mais direta",
   },
@@ -39,6 +40,7 @@ const servicePlans = [
     name: "Página estratégica",
     description: "Para projetos que precisam apresentar mais contexto e organizar diferentes partes da oferta.",
     price: 1000,
+    supportDays: 30,
     timeline: { days: 3, label: "dias úteis" },
     emphasis: "Mais camadas de conteúdo",
   },
@@ -47,6 +49,7 @@ const servicePlans = [
     name: "Página completa",
     description: "Para uma apresentação mais elaborada, com estrutura e copy persuasiva.",
     price: 1500,
+    supportDays: 60,
     timeline: { days: 3, label: "dias úteis" },
     emphasis: "Estrutura e copy persuasiva",
   },
@@ -228,6 +231,166 @@ function PortfolioStories() {
         <div><strong>10</strong><span>SEGMENTOS</span></div>
         <div className="portfolio-stories-footer-note">CENÁRIOS E FALAS FICTÍCIAS, APENAS PARA DEMONSTRAR O FORMATO</div>
       </div>
+    </section>
+  );
+}
+
+const guaranteeConcerns = [
+  { label: "Escopo indefinido", weight: "ESCOPO", response: "O escopo é alinhado antes de começar." },
+  { label: "Pagar antes da entrega", weight: "PAGAMENTO", response: "O pagamento acontece após o alinhamento e a entrega." },
+  { label: "Dúvidas depois", weight: "SUPORTE", response: "O suporte segue o período do plano contratado." },
+];
+
+type GuaranteePlacement = { index: number; side: "client" | "commitment"; phase: "falling" | "dust" | "settled" };
+
+function ProjectGuarantee() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const scaleRef = useRef<SVGSVGElement>(null);
+  const dragRef = useRef<{ pointerId: number; index: number; x: number; y: number; moved: boolean } | null>(null);
+  const skipClickRef = useRef(false);
+  const timersRef = useRef<number[]>([]);
+  const [isVisible, setIsVisible] = useState(false);
+  const [placement, setPlacement] = useState<GuaranteePlacement | null>(null);
+  const [announcement, setAnnouncement] = useState("Escolha um ponto para ver como ele vira um compromisso claro.");
+  const tilt = placement?.phase === "falling" && placement.side === "client" ? -8 : 8;
+  const panLeftY = tilt < 0 ? 146 : 98;
+  const panRightY = tilt > 0 ? 146 : 98;
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), { threshold: 0.12 });
+    observer.observe(section);
+    return () => {
+      observer.disconnect();
+      timersRef.current.forEach(window.clearTimeout);
+    };
+  }, []);
+
+  const placeConcern = (index: number, side: GuaranteePlacement["side"]) => {
+    timersRef.current.forEach(window.clearTimeout);
+    const concern = guaranteeConcerns[index];
+    setPlacement({ index, side, phase: "falling" });
+    setAnnouncement(side === "client" ? `${concern.label} colocado no prato Seu lado.` : `${concern.label} levado ao prato Nosso compromisso.`);
+    timersRef.current = [
+      window.setTimeout(() => setPlacement((current) => current?.index === index ? { ...current, phase: "dust" } : current), 780),
+      window.setTimeout(() => {
+        setPlacement({ index, side: "commitment", phase: "settled" });
+        setAnnouncement(`${concern.label}: ${concern.response}`);
+      }, side === "client" ? 1540 : 820),
+    ];
+  };
+
+  const handleConcernPointerDown = (event: ReactPointerEvent<HTMLButtonElement>, index: number) => {
+    if (event.pointerType !== "mouse" || event.button !== 0) return;
+    dragRef.current = { pointerId: event.pointerId, index, x: event.clientX, y: event.clientY, moved: false };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleConcernPointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    if (Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > 10) drag.moved = true;
+  };
+
+  const handleConcernPointerUp = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    dragRef.current = null;
+    if (!drag.moved) return;
+    skipClickRef.current = true;
+    window.setTimeout(() => { skipClickRef.current = false; }, 0);
+    const bounds = scaleRef.current?.getBoundingClientRect();
+    if (!bounds || event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) return;
+    placeConcern(drag.index, event.clientX < bounds.left + bounds.width / 2 ? "client" : "commitment");
+  };
+
+  return (
+    <section ref={sectionRef} className={`project-guarantee${isVisible ? " is-visible" : ""}`} aria-labelledby="guarantee-title">
+      <div className="project-guarantee-shell">
+        <div className="project-guarantee-copy">
+          <p className="project-guarantee-kicker"><span /> 08 / GARANTIA E COMPROMISSO</p>
+          <p className="project-guarantee-label"><ShieldCheck size={15} aria-hidden="true" /> COMBINADOS CLAROS EM CADA PLANO</p>
+          <h2 id="guarantee-title">Clareza no escopo.<br /><em>Compromisso na entrega.</em></h2>
+          <p className="project-guarantee-lead">Você só paga depois que o escopo estiver alinhado e o projeto for entregue. O suporte acompanha o plano escolhido.</p>
+
+          <ol className="project-guarantee-terms">
+            <li><span>I</span><p><strong>Alinhamento antes de começar.</strong> O briefing define o escopo do projeto.</p></li>
+            <li><span>II</span><p><strong>Pagamento após alinhamento e entrega.</strong> Você recebe o projeto antes de pagar.</p></li>
+            <li><span>III</span><p><strong>Suporte conforme o plano contratado.</strong> Cada opção tem um período definido.</p></li>
+          </ol>
+
+        </div>
+
+        <div className="project-guarantee-stage">
+          <div className="project-guarantee-scale-wrap">
+            <span className="project-guarantee-halo" aria-hidden="true" />
+            <svg ref={scaleRef} className="project-guarantee-scale" viewBox="0 0 560 445" role="img" aria-label="Balança ilustrativa dos compromissos do projeto">
+              <defs>
+                <linearGradient id="guarantee-brass" x1="0" x2="0" y2="1"><stop offset="0" stopColor="#f1d9a6" /><stop offset=".52" stopColor="#bc965a" /><stop offset="1" stopColor="#806039" /></linearGradient>
+                <linearGradient id="guarantee-pan" x1="0" x2="0" y2="1"><stop offset="0" stopColor="#ead3a0" /><stop offset="1" stopColor="#8b6939" /></linearGradient>
+                <radialGradient id="guarantee-shadow"><stop offset="0" stopColor="#111" stopOpacity=".2" /><stop offset="1" stopColor="#111" stopOpacity="0" /></radialGradient>
+              </defs>
+              <circle cx="280" cy="236" r="198" fill="rgba(255,255,255,.62)" />
+              <circle cx="280" cy="236" r="210" fill="none" stroke="rgba(176,141,87,.24)" />
+              <ellipse cx="280" cy="425" rx="150" ry="11" fill="url(#guarantee-shadow)" />
+              <path d="M24 426H536" stroke="rgba(17,17,17,.16)" />
+              <rect x="203" y="405" width="154" height="18" rx="4" fill="url(#guarantee-brass)" />
+              <rect x="225" y="389" width="110" height="18" rx="4" fill="url(#guarantee-brass)" />
+              <path d="M269 390L274 133h12l5 257z" fill="url(#guarantee-brass)" />
+              <path d="M280 126L242 69a73 73 0 0 1 76 0z" fill="#f8f2e7" stroke="#b08d57" strokeWidth="2" />
+              <path d="M250 77l-5-8m14 4-4-11m15 10-2-12m12 12V59m12 13 2-12m11 14 4-11m9 14 5-8" fill="none" stroke="#8b6939" strokeWidth="2" />
+              <text x="238" y="103" textAnchor="end" className="project-guarantee-dial">SEU LADO</text>
+              <text x="322" y="103" className="project-guarantee-dial">NOSSO LADO</text>
+              <g className="project-guarantee-beam" transform={`rotate(${tilt} 280 126)`}>
+                <path d="M91 122l189-7 189 7v8l-189 8-189-8z" fill="url(#guarantee-brass)" />
+                <circle cx="94" cy="126" r="7" fill="#a98349" /><circle cx="466" cy="126" r="7" fill="#a98349" />
+                <circle cx="280" cy="126" r="15" fill="#a98349" /><circle cx="280" cy="126" r="5" fill="#554022" />
+              </g>
+              <g className="project-guarantee-pan" transform={`translate(103 ${panLeftY})`}>
+                <path d="M0 0v27m-78 0v123m78-123v123m78-123v123" fill="none" stroke="#927344" strokeWidth="2" strokeDasharray="2 5" />
+                <rect x="-82" y="27" width="164" height="7" rx="3" fill="url(#guarantee-brass)" />
+                {placement?.side === "client" && <g className={`project-guarantee-weight project-guarantee-client-weight is-${placement.phase}`} transform="translate(0 99)"><rect x="-72" y="-10" width="144" height="23" rx="4" fill="#f4f1ea" stroke="#b08d57" /><text y="5" textAnchor="middle">{guaranteeConcerns[placement.index].weight}</text></g>}
+                <path d="M-90 151H90c-7 24-37 33-90 33s-83-9-90-33z" fill="url(#guarantee-pan)" />
+                <rect x="-93" y="147" width="186" height="7" rx="3" fill="url(#guarantee-brass)" />
+                <text className="project-guarantee-plate-label" y="211" textAnchor="middle">SEU LADO</text>
+              </g>
+              <g className="project-guarantee-pan" transform={`translate(457 ${panRightY})`}>
+                <path d="M0 0v27m-78 0v123m78-123v123m78-123v123" fill="none" stroke="#927344" strokeWidth="2" strokeDasharray="2 5" />
+                <rect x="-82" y="27" width="164" height="7" rx="3" fill="url(#guarantee-brass)" />
+                {servicePlans.map((plan, index) => <g className={`project-guarantee-weight project-guarantee-commitment${isVisible ? " is-entered" : ""}`} style={{ "--weight-delay": `${index * 220}ms` } as CSSProperties} transform={`translate(0 ${91 + index * 22})`} key={plan.number}><rect x="-75" y="-9" width="150" height="19" rx="4" fill="#c32f1b" /><text y="4" textAnchor="middle">SUPORTE · {plan.supportDays} DIAS</text></g>)}
+                {placement?.side === "commitment" && <g className={`project-guarantee-weight is-${placement.phase}`} transform="translate(0 60)"><rect x="-75" y="-9" width="150" height="19" rx="4" fill="#111" /><text y="4" textAnchor="middle">{guaranteeConcerns[placement.index].weight} ALINHADO</text></g>}
+                <path d="M-90 151H90c-7 24-37 33-90 33s-83-9-90-33z" fill="url(#guarantee-pan)" />
+                <rect x="-93" y="147" width="186" height="7" rx="3" fill="url(#guarantee-brass)" />
+                <text className="project-guarantee-plate-label" y="211" textAnchor="middle">NOSSO COMPROMISSO</text>
+              </g>
+              {placement?.phase === "dust" && Array.from({ length: 9 }, (_, index) => {
+                const angle = (index / 9) * Math.PI * 2;
+                const x = placement.side === "client" ? 103 : 457;
+                const y = (placement.side === "client" ? panLeftY + 99 : panRightY + 60);
+                return <circle key={index} className="project-guarantee-dust" style={{ "--dust-index": index, "--dust-x": `${Math.cos(angle) * 24}px`, "--dust-y": `${Math.sin(angle) * 19}px` } as CSSProperties} cx={x} cy={y} r="3" />;
+              })}
+            </svg>
+          </div>
+
+          <div className="project-guarantee-support">
+            <p>SUPORTE EM CADA PLANO</p>
+            <div>{servicePlans.map((plan) => <article key={plan.number}><span>PLANO {plan.number}</span><strong>{plan.name}</strong><b>{plan.supportDays} dias <small>de suporte</small></b></article>)}</div>
+          </div>
+
+          <div className="project-guarantee-tray">
+            <div className="project-guarantee-tray-title"><span>SEUS PONTOS</span><span>Arraste para a balança ou toque</span></div>
+            <div className="project-guarantee-chips">{guaranteeConcerns.map((concern, index) => <button type="button" key={concern.weight} onClick={() => { if (!skipClickRef.current) placeConcern(index, "client"); }} onPointerDown={(event) => handleConcernPointerDown(event, index)} onPointerMove={handleConcernPointerMove} onPointerUp={handleConcernPointerUp} onPointerCancel={() => { dragRef.current = null; }} onKeyDown={(event) => { if (event.key === "ArrowLeft" || event.key === "ArrowRight") { event.preventDefault(); placeConcern(index, event.key === "ArrowLeft" ? "client" : "commitment"); } }} aria-label={`${concern.label}. Enter pesa no seu lado; setas esquerda e direita escolhem o lado.`}>{concern.label}<ArrowUpRight size={12} aria-hidden="true" /></button>)}</div>
+            <p className="project-guarantee-status" aria-live="polite">{announcement}</p>
+          </div>
+        </div>
+        <div className="project-guarantee-action">
+          <a href="#briefing">VAMOS ALINHAR SEU PROJETO <ArrowUpRight size={15} aria-hidden="true" /></a>
+          <span>Escopo e condições apresentados no briefing.</span>
+        </div>
+      </div>
+
+      <footer className="project-guarantee-footer"><span>RAFAEL FONSECA · ESCOPO ALINHADO, ENTREGA E SUPORTE</span><a href="#briefing">CONVERSAR SOBRE MEU PROJETO <ArrowUpRight size={13} /></a></footer>
     </section>
   );
 }
@@ -1121,6 +1284,7 @@ function Index() {
         <div className="process-footer"><span>RAFAEL FONSECA · ESTRATÉGIA, DESIGN E PRESENÇA DIGITAL</span><a href="#briefing">VAMOS CONVERSAR <ArrowUpRight size={13} /></a></div>
       </section>
       <PortfolioStories />
+      <ProjectGuarantee />
     </main>
   );
 }
