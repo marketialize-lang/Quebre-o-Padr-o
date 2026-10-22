@@ -911,3 +911,14 @@ button { -webkit-tap-highlight-color: transparent; }
   .faq-chat-message.is-typing span { animation: none; }
   .faq-assistant *, .faq-assistant *::before, .faq-assistant *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+a[href*="lovable"],
+[class*="lovable"],
+[id*="lovable"],
+img[src*="lovable"],
+button[class*="lovable"],
+div[class*="lovable"],
+div[id*="lovable"],
+[aria-label*="lovable" i] {
+  display: none !important;
+}
