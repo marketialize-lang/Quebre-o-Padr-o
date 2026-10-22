@@ -666,10 +666,10 @@ button { -webkit-tap-highlight-color: transparent; }
   .process-visual { min-height: 510px; margin-top: 5px; }
   .process-phone { width: min(260px, 75vw); height: 480px; }
   .process-phone-time { font-size: 76px; }
-  .process-visual-caption { bottom: 1%; font-size: 6px; }
-  .process-footer { margin-top: 25px; font-size: 6px; flex-wrap: wrap; }
-  .process-footer > span { max-width: none; flex: 1 0 100%; }
-  .process-footer a { margin-left: auto; font-size: 6px; }
+  .process-visual-caption { right: auto; bottom: -12px; left: 50%; width: min(260px, 75vw); transform: translateX(-50%); font-size: 6px; }
+  .process-footer { margin-top: 25px; font-size: 6px; }
+  .process-footer > span { max-width: 57%; }
+  .process-footer a { font-size: 6px; }
   .fit-section { padding: 54px 18px 18px; }
   .fit-shell { grid-template-columns: minmax(0, 1fr); gap: 15px; min-height: 0; }
   .fit-kicker { margin-bottom: 17px; font-size: 7px; }
