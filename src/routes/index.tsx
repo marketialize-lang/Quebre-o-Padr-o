@@ -117,13 +117,13 @@ function PortfolioStories() {
   const [isHolding, setIsHolding] = useState(false);
   const [isPageHidden, setIsPageHidden] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const activeProject = portfolioProjects[activeIndex];
+  const activeProject = portfolioProjects[activeIndex]!;
   const paused = isPaused || isHovered || hasFocus || isHolding || isPageHidden || !isInView;
 
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
-    const observer = new IntersectionObserver(([entry]) => setIsInView(entry.isIntersecting && entry.intersectionRatio > 0.12), { threshold: [0, 0.12, 0.3, 0.5] });
+    const observer = new IntersectionObserver((entries) => setIsInView(entries[0]!.isIntersecting && entries[0]!.intersectionRatio > 0.12), { threshold: [0, 0.12, 0.3, 0.5] });
     observer.observe(section);
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const updateMotionPreference = () => setPrefersReducedMotion(media.matches);
@@ -260,7 +260,7 @@ function ProjectGuarantee() {
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
-    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), { threshold: 0.12 });
+    const observer = new IntersectionObserver((entries) => setIsVisible(entries[0]!.isIntersecting), { threshold: 0.12 });
     observer.observe(section);
     return () => {
       observer.disconnect();
@@ -270,7 +270,7 @@ function ProjectGuarantee() {
 
   const placeConcern = (index: number, side: GuaranteePlacement["side"]) => {
     timersRef.current.forEach(window.clearTimeout);
-    const concern = guaranteeConcerns[index];
+    const concern = guaranteeConcerns[index]!;
     setPlacement({ index, side, phase: "falling" });
     setAnnouncement(side === "client" ? `${concern.label} colocado no prato Seu lado.` : `${concern.label} levado ao prato Nosso compromisso.`);
     timersRef.current = [
@@ -351,7 +351,7 @@ function ProjectGuarantee() {
               <g className="project-guarantee-pan" transform={`translate(103 ${panLeftY})`}>
                 <path d="M0 0v27m-78 0v123m78-123v123m78-123v123" fill="none" stroke="#927344" strokeWidth="2" strokeDasharray="2 5" />
                 <rect x="-82" y="27" width="164" height="7" rx="3" fill="url(#guarantee-brass)" />
-                {placement?.side === "client" && <g className={`project-guarantee-weight project-guarantee-client-weight is-${placement.phase}`} transform="translate(0 99)"><g className="project-guarantee-weight-motion"><rect x="-72" y="-10" width="144" height="23" rx="4" fill="#f4f1ea" stroke="#b08d57" /><text y="5" textAnchor="middle">{guaranteeConcerns[placement.index].weight}</text></g></g>}
+                {placement?.side === "client" && <g className={`project-guarantee-weight project-guarantee-client-weight is-${placement.phase}`} transform="translate(0 99)"><g className="project-guarantee-weight-motion"><rect x="-72" y="-10" width="144" height="23" rx="4" fill="#f4f1ea" stroke="#b08d57" /><text y="5" textAnchor="middle">{guaranteeConcerns[placement.index]?.weight}</text></g></g>}
                 <path d="M-90 151H90c-7 24-37 33-90 33s-83-9-90-33z" fill="url(#guarantee-pan)" />
                 <rect x="-93" y="147" width="186" height="7" rx="3" fill="url(#guarantee-brass)" />
                 <text className="project-guarantee-plate-label" y="211" textAnchor="middle">SEU LADO</text>
@@ -360,7 +360,7 @@ function ProjectGuarantee() {
                 <path d="M0 0v27m-78 0v123m78-123v123m78-123v123" fill="none" stroke="#927344" strokeWidth="2" strokeDasharray="2 5" />
                 <rect x="-82" y="27" width="164" height="7" rx="3" fill="url(#guarantee-brass)" />
                 {servicePlans.map((plan, index) => <g className={`project-guarantee-weight project-guarantee-commitment${isVisible ? " is-entered" : ""}`} style={{ "--weight-delay": `${index * 220}ms` } as CSSProperties} transform={`translate(0 ${91 + index * 22})`} key={plan.number}><g className="project-guarantee-weight-drop"><rect x="-75" y="-9" width="150" height="19" rx="4" fill="#c32f1b" /><text y="4" textAnchor="middle">SUPORTE · {plan.supportDays} DIAS</text></g></g>)}
-                {placement?.side === "commitment" && <g className={`project-guarantee-weight is-${placement.phase}${placement.phase === "settled" ? " is-returning" : ""}`} transform="translate(0 60)"><g className="project-guarantee-weight-motion"><rect x="-75" y="-9" width="150" height="19" rx="4" fill="#111" /><text y="4" textAnchor="middle">{guaranteeConcerns[placement.index].weight} ALINHADO</text></g></g>}
+                {placement?.side === "commitment" && <g className={`project-guarantee-weight is-${placement.phase}${placement.phase === "settled" ? " is-returning" : ""}`} transform="translate(0 60)"><g className="project-guarantee-weight-motion"><rect x="-75" y="-9" width="150" height="19" rx="4" fill="#111" /><text y="4" textAnchor="middle">{guaranteeConcerns[placement.index]?.weight} ALINHADO</text></g></g>}
                 <path d="M-90 151H90c-7 24-37 33-90 33s-83-9-90-33z" fill="url(#guarantee-pan)" />
                 <rect x="-93" y="147" width="186" height="7" rx="3" fill="url(#guarantee-brass)" />
                 <text className="project-guarantee-plate-label" y="211" textAnchor="middle">NOSSO COMPROMISSO</text>
@@ -421,7 +421,7 @@ function Index() {
   const fitPointerStart = useRef<number | null>(null);
   const fitExitTimerRef = useRef(0);
   const projectsSectionRef = useRef<HTMLElement>(null);
-  const projectsRailRef = useRef<HTMLUListElement>(null);
+  const projectsRailRef = useRef<HTMLOListElement>(null);
   const projectAutoTouchedRef = useRef(false);
   const projectScrollTimerRef = useRef(0);
   const projectProgrammaticScrollRef = useRef(false);
@@ -439,8 +439,8 @@ function Index() {
       setActiveProcessStep((current) => (current + 1) % processSteps.length);
       timer = window.setTimeout(advance, 2800);
     };
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
+    const observer = new IntersectionObserver((entries) => {
+      visible = entries[0]!.isIntersecting;
       window.clearTimeout(timer);
       if (visible && !processAutoTouchedRef.current) timer = window.setTimeout(advance, 1100);
     }, { threshold: 0.35 });
@@ -502,8 +502,8 @@ function Index() {
       });
 
       blades.forEach((blade, index) => {
-        const [x1, y1] = points[index];
-        const [x2, y2] = points[(index + 1) % bladeCount];
+        const [x1, y1] = points[index] ?? ([0, 0] as const);
+        const [x2, y2] = points[(index + 1) % bladeCount] ?? ([0, 0] as const);
         let dx = x2 - x1;
         let dy = y2 - y1;
         const length = Math.hypot(dx, dy) || 1;
@@ -555,7 +555,7 @@ function Index() {
           entry.target.classList.add("is-rolling");
           entry.target.querySelectorAll<HTMLElement>(".pricing-digit-strip").forEach((strip) => {
             strip.style.transition = "";
-            strip.style.transform = `translateY(-${strip.dataset.wheelIndex}em)`;
+            strip.style.transform = `translateY(-${strip.dataset["wheelIndex"]}em)`;
           });
         });
         observer.unobserve(entry.target);
@@ -632,7 +632,7 @@ function Index() {
       if (magnetStrength < 0.002 && want === 0) magnetStrength = 0;
 
       letters.forEach((letter, index) => {
-        const state = letterStates[index];
+        const state = letterStates[index]!;
         const rect = letter.getBoundingClientRect();
         const dx = rect.left - stageRect.left + rect.width / 2 - magnetX;
         const dy = rect.top - stageRect.top + rect.height / 2 - magnetY;
@@ -654,13 +654,13 @@ function Index() {
         const nextValues: number[] = [];
         const nextVelocities: number[] = [];
         for (let i = 0; i < goals.length; i++) {
-          const acceleration = (goals[i] - values[i]) * 190 - damping * velocities[i];
-          const velocity = velocities[i] + acceleration * dt;
-          nextValues.push(values[i] + velocity * dt);
+          const acceleration = (goals[i]! - values[i]!) * 190 - damping * velocities[i]!;
+          const velocity = velocities[i]! + acceleration * dt;
+          nextValues.push(values[i]! + velocity * dt);
           nextVelocities.push(velocity);
         }
-        const [x, y, rotation, scale, hot] = nextValues;
-        const [vx, vy, vr, vs, vh] = nextVelocities;
+        const [x = 0, y = 0, rotation = 0, scale = 1, hot = 0] = nextValues;
+        const [vx = 0, vy = 0, vr = 0, vs = 0, vh = 0] = nextVelocities;
         Object.assign(state, { x, y, rotation, scale, hot, vx, vy, vr, vs, vh });
         letter.style.setProperty("--shift-x", `${x}px`);
         letter.style.setProperty("--shift-y", `${y}px`);
@@ -733,8 +733,8 @@ function Index() {
       setActiveProjectIndex((index) => (index + 1) % portfolioProjects.length);
       timer = window.setTimeout(advance, 2600);
     };
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
+    const observer = new IntersectionObserver((entries) => {
+      visible = entries[0]!.isIntersecting;
       window.clearTimeout(timer);
       if (visible && !projectAutoTouchedRef.current && !reduceMotion) timer = window.setTimeout(advance, 1800);
     }, { threshold: 0.25 });
@@ -833,7 +833,7 @@ function Index() {
   const resetFit = () => { window.clearTimeout(fitExitTimerRef.current); fitExitTimerRef.current = 0; setFitExitDirection(null); setFitAnswers([]); };
 
   const fitScore = fitAnswers.length
-    ? Math.round((fitAnswers.filter((answer, index) => answer === fitProfiles[index].match).length / fitAnswers.length) * 100)
+    ? Math.round((fitAnswers.filter((answer, index) => answer === fitProfiles[index]?.match).length / fitAnswers.length) * 100)
     : 0;
 
   const handleFitKeyDown = (event: KeyboardEvent<HTMLElement>) => {
@@ -1026,7 +1026,7 @@ function Index() {
                 const nearest = slides.reduce((best, slide) => {
                   const rect = slide.getBoundingClientRect();
                   const distance = Math.abs(rect.left + rect.width / 2 - center);
-                  return distance < best.distance ? { index: Number(slide.dataset.projectIndex), distance } : best;
+                  return distance < best.distance ? { index: Number(slide.dataset["projectIndex"]), distance } : best;
                 }, { index: activeProjectIndex, distance: Number.POSITIVE_INFINITY });
                 setActiveProjectIndex((current) => nearest.index === current ? current : nearest.index);
               }, 110);
@@ -1097,8 +1097,8 @@ function Index() {
               <span>{String(activeProjectIndex + 1).padStart(2, "0")} <i>/</i> 10</span>
               <button type="button" onClick={() => moveProject(1)} aria-label="Próximo projeto"><ArrowRight size={15} /></button>
             </div>
-            <a className="projects-footer-cta" href={portfolioProjects[activeProjectIndex].url} target="_blank" rel="noreferrer">
-              ABRIR {portfolioProjects[activeProjectIndex].name.toUpperCase()} <ArrowUpRight size={14} />
+            <a className="projects-footer-cta" href={portfolioProjects[activeProjectIndex]!.url} target="_blank" rel="noreferrer">
+              ABRIR {portfolioProjects[activeProjectIndex]!.name.toUpperCase()} <ArrowUpRight size={14} />
             </a>
           </footer>
         </div>
@@ -1260,7 +1260,7 @@ function Index() {
                 </button>
               ))}
             </div>
-            <p className="process-active-description" aria-live="polite">{processSteps[activeProcessStep].description}</p>
+            <p className="process-active-description" aria-live="polite">{processSteps[activeProcessStep]!.description}</p>
             <a className="process-cta" href="#briefing">COMEÇAR PELO BRIEFING <ArrowUpRight size={15} /></a>
           </div>
           <div className="process-visual" aria-live="polite">
@@ -1269,14 +1269,14 @@ function Index() {
               <div className="process-phone-screen">
                 <div className="process-phone-top"><span>RF<span>/</span> DIGITAL</span><i /></div>
                 <div className="process-phone-time">{String(activeProcessStep + 1).padStart(2, "0")}<small> / 04</small></div>
-                <div className="process-phone-status"><i /><span>SEU PROJETO · {processSteps[activeProcessStep].time}</span></div>
+                <div className="process-phone-status"><i /><span>SEU PROJETO · {processSteps[activeProcessStep]!.time}</span></div>
                 <div className="process-notification" id="process-screen" role="tabpanel" aria-labelledby={`process-tab-${activeProcessStep}`} key={activeProcessStep}>
                   <span className="process-notification-icon"><ArrowUpRight size={17} /></span>
                   <span className="process-notification-meta">QUEBRE O PADRÃO <small>AGORA</small></span>
-                  <strong>{processSteps[activeProcessStep].screen}</strong>
-                  <p>{processSteps[activeProcessStep].note}</p>
+                  <strong>{processSteps[activeProcessStep]!.screen}</strong>
+                  <p>{processSteps[activeProcessStep]!.note}</p>
                 </div>
-                <div className="process-phone-bottom"><span>ETAPA ATUAL</span><strong>{processSteps[activeProcessStep].label}</strong></div>
+                <div className="process-phone-bottom"><span>ETAPA ATUAL</span><strong>{processSteps[activeProcessStep]!.label}</strong></div>
               </div>
             </div>
             <span className="process-visual-caption">UM PROJETO, QUATRO ETAPAS CLARAS</span>
