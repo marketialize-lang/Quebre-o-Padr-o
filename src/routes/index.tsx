@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play, Shuffle } from "lucide-react";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -52,6 +52,15 @@ const servicePlans = [
   },
 ];
 
+const fitProfiles = [
+  { match: true, title: "Quero apresentar meu serviço com mais clareza.", detail: "PÁGINA OBJETIVA · A PARTIR DE R$ 497" },
+  { match: true, title: "Estou lançando uma oferta e preciso de uma página própria.", detail: "ESTRUTURA PENSADA PARA A SUA OFERTA" },
+  { match: true, title: "Meu negócio cresceu e a presença digital precisa acompanhar.", detail: "PÁGINA OU SITE ALINHADO AO ESCOPO" },
+  { match: true, title: "Quero organizar melhor as informações para meus clientes.", detail: "CONTEÚDO DEFINIDO EM BRIEFING" },
+  { match: false, title: "Espero que o site, sozinho, garanta vendas ou resultados.", detail: "RESULTADOS TAMBÉM DEPENDEM DE OUTROS FATORES" },
+  { match: false, title: "Ainda não quero participar do briefing nem definir o projeto.", detail: "TODO PROJETO COMEÇA COM ALINHAMENTO" },
+];
+
 function PriceOdometer({ value, className = "" }: { value: number; className?: string }) {
   const formatted = value.toLocaleString("pt-BR");
   const digitCount = (formatted.match(/\d/g) ?? []).length;
@@ -90,6 +99,11 @@ function Index() {
   const [activeStoryStep, setActiveStoryStep] = useState(0);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const [pricingMode, setPricingMode] = useState<"investment" | "timeline">("investment");
+  const [fitAnswers, setFitAnswers] = useState<boolean[]>([]);
+  const [fitDragX, setFitDragX] = useState(0);
+  const [fitExitDirection, setFitExitDirection] = useState<"yes" | "no" | null>(null);
+  const fitPointerStart = useRef<number | null>(null);
+  const fitExitTimerRef = useRef(0);
   const projectsSectionRef = useRef<HTMLElement>(null);
   const projectsRailRef = useRef<HTMLUListElement>(null);
   const projectAutoTouchedRef = useRef(false);
@@ -462,6 +476,32 @@ function Index() {
     setActiveProjectIndex(index);
   };
 
+  const answerFit = (isMatch: boolean) => {
+    if (fitExitTimerRef.current || fitAnswers.length >= fitProfiles.length) return;
+    setFitExitDirection(isMatch ? "yes" : "no");
+    setFitDragX(0);
+    fitPointerStart.current = null;
+    fitExitTimerRef.current = window.setTimeout(() => {
+      setFitAnswers((answers) => answers.length < fitProfiles.length ? [...answers, isMatch] : answers);
+      setFitExitDirection(null);
+      fitExitTimerRef.current = 0;
+    }, 380);
+  };
+
+  const undoFit = () => { if (!fitExitTimerRef.current) setFitAnswers((answers) => answers.slice(0, -1)); };
+
+  const resetFit = () => { window.clearTimeout(fitExitTimerRef.current); fitExitTimerRef.current = 0; setFitExitDirection(null); setFitAnswers([]); };
+
+  const fitScore = fitAnswers.length
+    ? Math.round((fitAnswers.filter((answer, index) => answer === fitProfiles[index].match).length / fitAnswers.length) * 100)
+    : 0;
+
+  const handleFitKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.target instanceof HTMLElement && event.target.closest("a")) return;
+    if (event.key === "ArrowRight") { event.preventDefault(); answerFit(true); }
+    if (event.key === "ArrowLeft") { event.preventDefault(); answerFit(false); }
+  };
+
   const shuffleLetters = () => {
     setShuffleKey((key) => key + 1);
   };
@@ -817,6 +857,45 @@ function Index() {
           </aside>
           <div className="pricing-footer"><span>RAFAEL FONSECA · ESTRATÉGIA, DESIGN E PRESENÇA DIGITAL</span><a href="#top">VOLTAR AO INÍCIO <ArrowUpRight size={13} /></a></div>
         </div>
+      </section>
+      <section className="fit-section" aria-labelledby="fit-title" onKeyDown={handleFitKeyDown}>
+        <div className="fit-shell">
+          <div className="fit-copy">
+            <p className="fit-kicker"><span /> 05 / PARA QUEM É</p>
+            <h2 id="fit-title">Deslize os perfis.<br /><em>Veja se combina.</em></h2>
+            <p className="fit-lead">Marque “sou eu” ou “não sou eu”. No fim, você vê o quanto esse tipo de projeto faz sentido para o seu momento.</p>
+            <div className="fit-meter" aria-live="polite" aria-atomic="true">
+              <div className="fit-meter-label"><span>COMPATIBILIDADE</span><span>{String(fitAnswers.length).padStart(2, "0")} / {fitProfiles.length}</span></div>
+              <div className="fit-meter-score">{fitScore}<small>%</small></div>
+              <div className="fit-meter-bars" aria-hidden="true">{fitProfiles.map((profile, index) => <i className={index < fitAnswers.length ? (fitAnswers[index] === profile.match ? "is-match" : "is-miss") : ""} key={index} />)}</div>
+              <p>{fitAnswers.length === fitProfiles.length ? fitScore >= 70 ? "Parece que seu projeto combina com o meu trabalho." : fitScore >= 40 ? "Há pontos em comum. O briefing ajuda a entender o escopo." : "Talvez ainda não seja o momento ideal para este serviço." : "Sua leitura dos perfis atualiza o resultado."}</p>
+            </div>
+            <span className="fit-hint">USE AS SETAS, OS BOTÕES OU ARRASTE O CARTÃO</span>
+          </div>
+          <div className={`fit-stage${fitAnswers.length === fitProfiles.length ? " is-complete" : ""}`}>
+            <span className="fit-ghost" aria-hidden="true">MATCH</span>
+            {fitAnswers.length < fitProfiles.length ? (
+              <div className="fit-deck" onPointerDown={(event) => { if (event.button !== 0) return; fitPointerStart.current = event.clientX; event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={(event) => { if (fitPointerStart.current !== null) setFitDragX(event.clientX - fitPointerStart.current); }} onPointerUp={() => { if (fitPointerStart.current === null) return; const delta = fitDragX; if (Math.abs(delta) > 60) answerFit(delta > 0); else setFitDragX(0); fitPointerStart.current = null; }} onPointerCancel={() => { fitPointerStart.current = null; setFitDragX(0); }}>
+                {fitProfiles.map((profile, index) => {
+                  const depth = index - fitAnswers.length;
+                  if (depth < 0 || depth > 2) return null;
+                  return <article className={`fit-card${depth === 0 ? " is-current" : ""}${depth === 0 && fitExitDirection ? ` is-exiting-${fitExitDirection}` : ""}`} key={index} aria-hidden={depth !== 0} style={{ "--fit-depth": depth, zIndex: 5 - depth, ...(depth === 0 && !fitExitDirection ? { transform: `translate3d(${fitDragX}px, ${Math.abs(fitDragX) * -0.04}px, 0) rotate(${fitDragX * 0.035}deg)` } : {}) } as CSSProperties}>
+                    <div className="fit-card-top"><span>PERFIL {String(index + 1).padStart(2, "0")}</span><span>{String(index + 1).padStart(2, "0")} / {fitProfiles.length}</span></div>
+                    <span className="fit-orb" aria-hidden="true">{profile.match ? <ArrowUpRight size={24} /> : <span>×</span>}</span>
+                    <h3>{profile.title}</h3>
+                    <p className="fit-card-detail">{profile.detail}</p>
+                    <div className="fit-card-bottom"><span>← NÃO SOU EU</span><span>SOU EU →</span></div>
+                    {(fitDragX !== 0 || fitExitDirection) && depth === 0 && <span className={`fit-stamp ${(fitExitDirection ? fitExitDirection === "yes" : fitDragX > 0) ? "is-yes" : "is-no"}`}>{(fitExitDirection ? fitExitDirection === "yes" : fitDragX > 0) ? "SOU EU" : "NÃO SOU"}</span>}
+                  </article>;
+                })}
+              </div>
+            ) : (
+              <div className="fit-result"><span>SEU RESULTADO</span><strong>{fitScore}<small>%</small></strong><p>{fitScore >= 70 ? "Esse tipo de projeto parece fazer sentido para você." : fitScore >= 40 ? "Alguns pontos combinam. Vamos entender melhor no briefing." : "Talvez este serviço não seja o melhor encaixe agora."}</p><a href="#briefing">CONVERSAR SOBRE MEU PROJETO <ArrowUpRight size={15} /></a><button type="button" onClick={resetFit}>REFAZER O TESTE</button></div>
+            )}
+            {fitAnswers.length < fitProfiles.length && <div className="fit-controls"><button type="button" className="fit-no" aria-label="Não sou eu" disabled={fitExitDirection !== null} onClick={() => answerFit(false)}>×</button><button type="button" className="fit-yes" aria-label="Sou eu" disabled={fitExitDirection !== null} onClick={() => answerFit(true)}>✓</button><button type="button" className="fit-undo" disabled={!fitAnswers.length || fitExitDirection !== null} onClick={undoFit}>↶ DESFAZER</button></div>}
+          </div>
+        </div>
+        <div className="fit-footer"><span>RAFAEL FONSECA · ESTRATÉGIA, DESIGN E PRESENÇA DIGITAL</span><a href="#contato">VER OS PLANOS <ArrowUpRight size={13} /></a></div>
       </section>
     </main>
   );
