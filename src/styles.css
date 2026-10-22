@@ -516,13 +516,16 @@ button { -webkit-tap-highlight-color: transparent; }
 .project-guarantee-weight rect { filter: drop-shadow(0 3px 3px rgba(17,17,17,.17)); }
 .project-guarantee-weight text { fill: #fff9ee; font: 700 8px ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing: .04em; }
 .project-guarantee-client-weight text { fill: #26221c; }
-.project-guarantee-weight.is-falling { animation: guarantee-weight-arrive .58s cubic-bezier(.2,.8,.3,1) both; }
-.project-guarantee-weight.is-dust { opacity: 0; transform: scale(.84); transform-origin: center; transition: opacity .38s,transform .38s; }
+.project-guarantee-weight.is-falling .project-guarantee-weight-motion { animation: guarantee-weight-arrive .58s cubic-bezier(.2,.8,.3,1) both; }
+.project-guarantee-weight.is-returning .project-guarantee-weight-motion { animation: guarantee-weight-arrive .5s cubic-bezier(.2,.8,.3,1) both; }
+.project-guarantee-weight.is-dust { opacity: 0; transition: opacity .38s; }
 .project-guarantee-commitment { opacity: 0; }
-.project-guarantee-commitment.is-entered { animation: guarantee-commitment-in .65s cubic-bezier(.2,.8,.2,1) var(--weight-delay,0s) both; }
+.project-guarantee-commitment.is-entered { animation: guarantee-commitment-in .7s cubic-bezier(.2,.8,.2,1) var(--weight-delay,0s) both; }
+.project-guarantee-commitment.is-entered .project-guarantee-weight-drop { animation: guarantee-weight-drop .72s cubic-bezier(.2,.8,.3,1) var(--weight-delay,0s) both; }
 .project-guarantee-dust { fill: #caa35e; animation: guarantee-dust .62s ease-out both; animation-delay: calc(var(--dust-index) * 22ms); }
 @keyframes guarantee-weight-arrive { from { opacity: 0; transform: translateY(-54px); } to { opacity: 1; transform: none; } }
 @keyframes guarantee-commitment-in { 0% { opacity: 0; } 65% { opacity: 1; } 78% { opacity: .72; } 100% { opacity: 1; } }
+@keyframes guarantee-weight-drop { 0% { opacity: 0; transform: translateY(-56px); } 78% { opacity: 1; transform: translateY(4px); } 100% { opacity: 1; transform: translateY(0); } }
 @keyframes guarantee-dust { from { opacity: 1; transform: translate(0,0) scale(1); } to { opacity: 0; transform: translate(var(--dust-x),var(--dust-y)) scale(.35); } }
 .project-guarantee-support { margin: -2px auto 16px; }
 .project-guarantee-support > p { margin: 0 0 9px; color: #665e51; font: 700 8px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing: .14em; }
