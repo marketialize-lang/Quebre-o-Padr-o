@@ -1186,13 +1186,14 @@ function Index() {
             ))}
           </div>
 
-          <aside className="pricing-briefing" id="briefing">
+          <aside className="pricing-briefing pricing-briefing--form" id="briefing">
             <span className="pricing-briefing-index">ANTES DE COMEÇAR</span>
             <div>
               <h4>Todo projeto começa com um briefing completo.</h4>
               <p>É nessa etapa que vamos entender seu negócio, seus objetivos e o conteúdo necessário para estruturar a página.</p>
             </div>
             <span className="pricing-briefing-mark" aria-hidden="true">RF<span>.</span></span>
+            <BriefingForm />
           </aside>
           <div className="pricing-footer"><span>RAFAEL FONSECA · ESTRATÉGIA, DESIGN E PRESENÇA DIGITAL</span><a href="#top">VOLTAR AO INÍCIO <ArrowUpRight size={13} /></a></div>
         </div>
