@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>) => ({ negado: s["negado"] ? 1 : undefined }),
+  validateSearch: (s: Record<string, unknown>): { negado?: number } => (s["negado"] ? { negado: 1 } : {}),
   head: () => ({
     meta: [
       { title: "Entrar — Rafael Fonseca" },
