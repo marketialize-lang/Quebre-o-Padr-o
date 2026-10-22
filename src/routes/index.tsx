@@ -61,6 +61,13 @@ const fitProfiles = [
   { match: false, title: "Ainda não quero participar do briefing nem definir o projeto.", detail: "TODO PROJETO COMEÇA COM ALINHAMENTO" },
 ];
 
+const processSteps = [
+  { label: "ALINHAMENTO", title: "Tudo começa pelo briefing.", description: "Entendo seu negócio, seus objetivos, seu público e o que a página precisa comunicar.", screen: "Briefing recebido", note: "Objetivos e conteúdo mapeados", time: "ETAPA 01" },
+  { label: "ESTRUTURA", title: "Organizamos a mensagem.", description: "Definimos a ordem das informações e a estrutura mais adequada ao escopo do projeto.", screen: "Estrutura definida", note: "Seções organizadas para o seu projeto", time: "ETAPA 02" },
+  { label: "DESIGN E DESENVOLVIMENTO", title: "A página ganha forma.", description: "Design e desenvolvimento trabalham juntos para apresentar sua marca com clareza e intenção.", screen: "Página em construção", note: "Design aplicado ao conteúdo aprovado", time: "ETAPA 03" },
+  { label: "REVISÃO E ENTREGA", title: "Conferimos e colocamos no ar.", description: "Depois dos ajustes previstos no escopo, você recebe a página pronta para compartilhar.", screen: "Projeto publicado", note: "Revisado e pronto para acessar", time: "ETAPA 04" },
+];
+
 function PriceOdometer({ value, className = "" }: { value: number; className?: string }) {
   const formatted = value.toLocaleString("pt-BR");
   const digitCount = (formatted.match(/\d/g) ?? []).length;
@@ -102,6 +109,7 @@ function Index() {
   const [fitAnswers, setFitAnswers] = useState<boolean[]>([]);
   const [fitDragX, setFitDragX] = useState(0);
   const [fitExitDirection, setFitExitDirection] = useState<"yes" | "no" | null>(null);
+  const [activeProcessStep, setActiveProcessStep] = useState(0);
   const fitPointerStart = useRef<number | null>(null);
   const fitExitTimerRef = useRef(0);
   const projectsSectionRef = useRef<HTMLElement>(null);
@@ -896,6 +904,45 @@ function Index() {
           </div>
         </div>
         <div className="fit-footer"><span>RAFAEL FONSECA · ESTRATÉGIA, DESIGN E PRESENÇA DIGITAL</span><a href="#contato">VER OS PLANOS <ArrowUpRight size={13} /></a></div>
+      </section>
+      <section className="process-section" aria-labelledby="process-title">
+        <div className="process-shell">
+          <div className="process-copy">
+            <p className="process-kicker"><span /> 06 / COMO FUNCIONA</p>
+            <h2 id="process-title">Do primeiro alinhamento<br /><em>à página no ar.</em></h2>
+            <p className="process-lead">Um caminho claro para transformar seu briefing em uma presença digital pronta para apresentar seu trabalho.</p>
+            <div className="process-steps" role="tablist" aria-label="Etapas do projeto" onKeyDown={(event) => { if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return; event.preventDefault(); const direction = event.key === "ArrowRight" ? 1 : -1; const next = (activeProcessStep + direction + processSteps.length) % processSteps.length; setActiveProcessStep(next); document.getElementById(`process-tab-${next}`)?.focus(); }}>
+              {processSteps.map((step, index) => (
+                <button className={`process-step${activeProcessStep === index ? " is-active" : ""}`} type="button" role="tab" aria-selected={activeProcessStep === index} aria-controls="process-screen" id={`process-tab-${index}`} key={step.label} onClick={() => setActiveProcessStep(index)}>
+                  <span className="process-step-number">0{index + 1}</span>
+                  <span className="process-step-copy"><strong>{step.label}</strong><small>{step.title}</small></span>
+                  <ArrowUpRight size={15} aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+            <p className="process-active-description" aria-live="polite">{processSteps[activeProcessStep].description}</p>
+            <a className="process-cta" href="#briefing">COMEÇAR PELO BRIEFING <ArrowUpRight size={15} /></a>
+          </div>
+          <div className="process-visual" aria-live="polite">
+            <span className="process-glow" aria-hidden="true" />
+            <div className="process-phone">
+              <div className="process-phone-screen">
+                <div className="process-phone-top"><span>RF<span>/</span> DIGITAL</span><i /></div>
+                <div className="process-phone-time">{String(activeProcessStep + 1).padStart(2, "0")}<small> / 04</small></div>
+                <div className="process-phone-status"><i /><span>SEU PROJETO · {processSteps[activeProcessStep].time}</span></div>
+                <div className="process-notification" id="process-screen" role="tabpanel" aria-labelledby={`process-tab-${activeProcessStep}`} key={activeProcessStep}>
+                  <span className="process-notification-icon"><ArrowUpRight size={17} /></span>
+                  <span className="process-notification-meta">QUEBRE O PADRÃO <small>AGORA</small></span>
+                  <strong>{processSteps[activeProcessStep].screen}</strong>
+                  <p>{processSteps[activeProcessStep].note}</p>
+                </div>
+                <div className="process-phone-bottom"><span>ETAPA ATUAL</span><strong>{processSteps[activeProcessStep].label}</strong></div>
+              </div>
+            </div>
+            <span className="process-visual-caption">UM PROJETO, QUATRO ETAPAS CLARAS</span>
+          </div>
+        </div>
+        <div className="process-footer"><span>RAFAEL FONSECA · ESTRATÉGIA, DESIGN E PRESENÇA DIGITAL</span><a href="#briefing">VAMOS CONVERSAR <ArrowUpRight size={13} /></a></div>
       </section>
     </main>
   );
