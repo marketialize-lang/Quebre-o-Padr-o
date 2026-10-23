@@ -923,21 +923,7 @@ function Index() {
     if (!rail || !track) return;
     const motion = projectMotionRef.current;
     const minX = () => Math.min(0, rail.clientWidth - track.scrollWidth);
-    let verticalGesture: { startY: number; lastY: number } | null = null;
-    const advanceFromVerticalTouch = (endY?: number) => {
-      const gesture = verticalGesture;
-      verticalGesture = null;
-      if (!gesture) return;
-      const distance = (endY ?? gesture.lastY) - gesture.startY;
-      if (Math.abs(distance) < 32) return;
-      const now = performance.now();
-      if (now - projectWheelCooldownRef.current < 260) return;
-      projectWheelCooldownRef.current = now;
-      projectAutoTouchedRef.current = true;
-      setActiveProjectIndex((index) => Math.max(0, Math.min(portfolioProjects.length - 1, index + (distance < 0 ? 1 : -1))));
-    };
     const handleTouchStart = (event: TouchEvent) => {
-      verticalGesture = null;
       if (event.touches.length !== 1) {
         motion.drag = null;
         return;
@@ -952,10 +938,6 @@ function Index() {
     };
     const handleTouchMove = (event: TouchEvent) => {
       const touch = event.touches[0];
-      if (verticalGesture && touch) {
-        verticalGesture.lastY = touch.clientY;
-        return;
-      }
       const drag = motion.drag;
       if (!drag || drag.pointerId !== -1 || event.touches.length !== 1) return;
       if (!touch) return;
@@ -965,7 +947,6 @@ function Index() {
         if (Math.max(Math.abs(dx), Math.abs(dy)) < 8) return;
         drag.axis = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
         if (drag.axis === "vertical") {
-          verticalGesture = { startY: drag.startY, lastY: touch.clientY };
           motion.drag = null;
           return;
         }
@@ -984,10 +965,6 @@ function Index() {
       track.style.transform = `translate3d(${nextX.toFixed(2)}px, 0, 0)`;
     };
     const handleTouchEnd = (event: TouchEvent) => {
-      if (verticalGesture) {
-        advanceFromVerticalTouch(event.changedTouches[0]?.clientY);
-        return;
-      }
       const drag = motion.drag;
       if (!drag || drag.pointerId !== -1) return;
       motion.drag = null;
@@ -1008,10 +985,6 @@ function Index() {
       projectKickRef.current();
     };
     const handleTouchCancel = (event: TouchEvent) => {
-      if (verticalGesture) {
-        advanceFromVerticalTouch(event.changedTouches[0]?.clientY);
-        return;
-      }
       const drag = motion.drag;
       if (!drag || drag.pointerId !== -1) return;
       const moved = drag.moved;
