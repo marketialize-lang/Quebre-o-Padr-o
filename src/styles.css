@@ -747,6 +747,7 @@ button { -webkit-tap-highlight-color: transparent; }
   .projects-carousel-tools { gap: 14px; }
   .projects-carousel-tools button { width: 34px; height: 34px; }
   .projects-rail { padding: 15px 0 26px; }
+  .project-slide { scroll-snap-stop: normal; }
   .projects-track { gap: 10px; padding-inline: 8vw; }
   .project-slide { flex-basis: 72vw; height: 440px; }
   .project-slide.is-active { flex-basis: 84vw; }

@@ -430,6 +430,7 @@ function Index() {
   const projectScrollTimerRef = useRef(0);
   const projectProgrammaticScrollRef = useRef(false);
   const projectProgrammaticScrollTimerRef = useRef(0);
+  const projectNativeScrollRef = useRef(false);
   const projectWheelCooldownRef = useRef(0);
 
   useEffect(() => {
@@ -730,6 +731,8 @@ function Index() {
     const section = projectsSectionRef.current;
     if (!section) return;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const touchDevice = window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 640;
+    if (touchDevice) return;
     let timer = 0;
     let visible = false;
     const advance = () => {
@@ -757,6 +760,7 @@ function Index() {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let fallback = 0;
     const alignActive = () => {
+      if (projectNativeScrollRef.current) return;
       const railRect = rail.getBoundingClientRect();
       const slideRect = activeSlide.getBoundingClientRect();
       const slideCenter = rail.scrollLeft + slideRect.left - railRect.left + slideRect.width / 2;
@@ -789,6 +793,7 @@ function Index() {
       if (now - projectWheelCooldownRef.current < pause) return;
       projectWheelCooldownRef.current = now;
       projectAutoTouchedRef.current = true;
+      projectNativeScrollRef.current = false;
       projectProgrammaticScrollRef.current = true;
       window.clearTimeout(projectProgrammaticScrollTimerRef.current);
       projectProgrammaticScrollTimerRef.current = window.setTimeout(() => {
@@ -802,6 +807,7 @@ function Index() {
 
   const moveProject = (direction: number) => {
     projectAutoTouchedRef.current = true;
+    projectNativeScrollRef.current = false;
     projectProgrammaticScrollRef.current = true;
     window.clearTimeout(projectProgrammaticScrollTimerRef.current);
     projectProgrammaticScrollTimerRef.current = window.setTimeout(() => {
@@ -812,6 +818,7 @@ function Index() {
 
   const selectProject = (index: number) => {
     projectAutoTouchedRef.current = true;
+    projectNativeScrollRef.current = false;
     projectProgrammaticScrollRef.current = true;
     window.clearTimeout(projectProgrammaticScrollTimerRef.current);
     projectProgrammaticScrollTimerRef.current = window.setTimeout(() => {
@@ -1027,6 +1034,7 @@ function Index() {
             }}
             onScroll={(event) => {
               if (projectProgrammaticScrollRef.current) return;
+              projectNativeScrollRef.current = true;
               const rail = event.currentTarget;
               window.clearTimeout(projectScrollTimerRef.current);
               projectScrollTimerRef.current = window.setTimeout(() => {
