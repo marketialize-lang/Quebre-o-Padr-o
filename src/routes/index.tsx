@@ -1110,24 +1110,36 @@ function Index() {
               motion.frame = 0;
               motion.target = null;
               motion.velocity = 0;
-              motion.drag = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: motion.x, lastTime: performance.now(), moved: 0, velocity: 0, axis: "horizontal" };
-              projectAutoTouchedRef.current = true;
+              motion.drag = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: motion.x, lastTime: performance.now(), moved: 0, velocity: 0, axis: null };
               event.currentTarget.classList.add("is-drag");
-              try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* fallback: retain pointer events on the rail */ }
             }}
             onPointerMove={(event: ReactPointerEvent<HTMLDivElement>) => {
               const motion = projectMotionRef.current;
               const drag = motion.drag;
               const track = projectsRailRef.current;
               if (!drag || !track || drag.pointerId !== event.pointerId) return;
+              const deltaX = event.clientX - drag.startX;
+              const deltaY = event.clientY - drag.startY;
+              if (drag.axis === null) {
+                if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 8) return;
+                drag.axis = Math.abs(deltaX) > Math.abs(deltaY) ? "horizontal" : "vertical";
+                if (drag.axis === "vertical") {
+                  motion.drag = null;
+                  event.currentTarget.classList.remove("is-drag");
+                  return;
+                }
+                projectAutoTouchedRef.current = true;
+                try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* fallback: retain pointer events on the rail */ }
+              }
+              if (drag.axis !== "horizontal") return;
               const now = performance.now();
-              let nextX = drag.originX + event.clientX - drag.startX;
+              let nextX = drag.originX + deltaX;
               const minimum = Math.min(0, event.currentTarget.clientWidth - track.scrollWidth);
               if (nextX > 0) nextX *= .35;
               else if (nextX < minimum) nextX = minimum + (nextX - minimum) * .35;
               drag.velocity = (nextX - motion.x) / Math.max(.008, (now - drag.lastTime) / 1000) * .6 + drag.velocity * .4;
               drag.lastTime = now;
-              drag.moved = Math.max(drag.moved, Math.abs(event.clientX - drag.startX));
+              drag.moved = Math.max(drag.moved, Math.abs(deltaX));
               motion.x = nextX;
               track.style.transform = `translate3d(${nextX.toFixed(2)}px, 0, 0)`;
             }}
