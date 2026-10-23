@@ -1035,7 +1035,7 @@ div[id*="lovable"],
 .site-footer-mark span { color: var(--accent); }
 .site-footer-contact { display: flex; align-items: center; justify-content: flex-end; gap: 18px; }
 .site-footer-contact a { display: inline-flex; align-items: center; gap: 7px; color: var(--ink); text-decoration: none; }
-.site-footer-contact a svg { flex: none; color: var(--accent); }
+.site-footer-contact a svg { width: 16px; height: 16px; flex: none; color: var(--accent); }
 .site-footer-contact a:focus-visible, .site-footer-mark:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .site-footer-contact a:hover { color: var(--accent); }
 .site-footer small { grid-column: 1 / -1; justify-self: end; color: #6d6861; font: inherit; text-align: right; }
