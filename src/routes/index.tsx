@@ -731,24 +731,38 @@ function Index() {
     const section = projectsSectionRef.current;
     if (!section) return;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const touchDevice = window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 640;
-    if (touchDevice) return;
+    const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
+    const narrowViewportQuery = window.matchMedia("(max-width: 640px)");
+    let touchDevice = coarsePointerQuery.matches || narrowViewportQuery.matches;
     let timer = 0;
     let visible = false;
     const advance = () => {
-      if (projectAutoTouchedRef.current || !visible || reduceMotion) return;
+      if (projectAutoTouchedRef.current || !visible || reduceMotion || touchDevice) return;
       setActiveProjectIndex((index) => (index + 1) % portfolioProjects.length);
       timer = window.setTimeout(advance, 2600);
+    };
+    const syncDeviceMode = () => {
+      touchDevice = coarsePointerQuery.matches || narrowViewportQuery.matches;
+      window.clearTimeout(timer);
+      if (visible && !projectAutoTouchedRef.current && !reduceMotion && !touchDevice) {
+        timer = window.setTimeout(advance, 1800);
+      }
     };
     const observer = new IntersectionObserver((entries) => {
       visible = entries[0]!.isIntersecting;
       window.clearTimeout(timer);
-      if (visible && !projectAutoTouchedRef.current && !reduceMotion) timer = window.setTimeout(advance, 1800);
+      if (visible && !projectAutoTouchedRef.current && !reduceMotion && !touchDevice) timer = window.setTimeout(advance, 1800);
     }, { threshold: 0.25 });
     observer.observe(section);
+    coarsePointerQuery.addEventListener("change", syncDeviceMode);
+    narrowViewportQuery.addEventListener("change", syncDeviceMode);
+    window.addEventListener("resize", syncDeviceMode, { passive: true });
     return () => {
       window.clearTimeout(timer);
       observer.disconnect();
+      coarsePointerQuery.removeEventListener("change", syncDeviceMode);
+      narrowViewportQuery.removeEventListener("change", syncDeviceMode);
+      window.removeEventListener("resize", syncDeviceMode);
     };
   }, []);
 
