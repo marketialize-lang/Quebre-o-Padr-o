@@ -164,10 +164,10 @@ button { -webkit-tap-highlight-color: transparent; }
 .projects-carousel-tools > span { display: flex; align-items: baseline; gap: 5px; color: rgba(244,241,234,.55); font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .1em; }
 .projects-carousel-tools strong { color: var(--paper); font-size: 13px; }
 .projects-carousel-tools i { color: var(--accent); font-style: normal; }
-.projects-rail { overflow-x: auto; overflow-y: hidden; padding: 18px 0 34px; scrollbar-width: none; scroll-snap-type: x mandatory; overscroll-behavior-inline: contain; }
-.projects-rail::-webkit-scrollbar { display: none; }
-.projects-track { display: flex; align-items: stretch; gap: 13px; width: max-content; margin: 0; padding: 0 max(20px, calc((100% - 540px) / 2)); list-style: none; }
-.project-slide { position: relative; flex: 0 0 258px; height: 354px; overflow: hidden; border: 1px solid rgba(244,241,234,.18); background: #171716; scroll-snap-align: center; scroll-snap-stop: always; transition: flex-basis .65s cubic-bezier(.7,0,.2,1), border-color .35s, box-shadow .4s; }
+.projects-rail { overflow: hidden; padding: 18px 0 34px; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; }
+.projects-rail.is-drag { cursor: grabbing; }
+.projects-track { display: flex; align-items: stretch; gap: 13px; width: max-content; margin: 0; padding: 0 max(20px, calc((100% - 540px) / 2)); list-style: none; will-change: transform; }
+.project-slide { position: relative; flex: 0 0 258px; height: 354px; overflow: hidden; border: 1px solid rgba(244,241,234,.18); background: #171716; transition: flex-basis .65s cubic-bezier(.7,0,.2,1), border-color .35s, box-shadow .4s; }
 .project-slide.is-active { flex-basis: 540px; border-color: rgba(255,59,31,.52); box-shadow: 0 25px 80px -44px rgba(255,59,31,.42); }
 .project-poster { position: absolute; inset: 0 auto 0 0; display: flex; width: 258px; flex-direction: column; justify-content: space-between; overflow: hidden; padding: 20px; border: 0; color: #f4f1ea; text-align: left; cursor: pointer; isolation: isolate; }
 .project-poster::before { position: absolute; z-index: -1; inset: 0; background: radial-gradient(110% 75% at 75% -10%, rgba(255,255,255,.28), transparent 56%), linear-gradient(180deg, transparent 28%, rgba(0,0,0,.1) 45%, rgba(0,0,0,.65)); content: ""; }

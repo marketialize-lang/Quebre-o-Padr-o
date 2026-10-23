@@ -427,11 +427,97 @@ function Index() {
   const projectsSectionRef = useRef<HTMLElement>(null);
   const projectsRailRef = useRef<HTMLOListElement>(null);
   const projectAutoTouchedRef = useRef(false);
-  const projectScrollTimerRef = useRef(0);
-  const projectProgrammaticScrollRef = useRef(false);
-  const projectProgrammaticScrollTimerRef = useRef(0);
-  const projectNativeScrollRef = useRef(false);
   const projectWheelCooldownRef = useRef(0);
+  const projectSuppressClickRef = useRef(false);
+  const projectKickRef = useRef<() => void>(() => {});
+  const projectMotionRef = useRef<{
+    x: number;
+    velocity: number;
+    target: number | null;
+    frame: number;
+    lastTime: number;
+    drag: { pointerId: number; startX: number; originX: number; lastTime: number; moved: number; velocity: number } | null;
+    settleOnStop: boolean;
+  }>({ x: 0, velocity: 0, target: null, frame: 0, lastTime: 0, drag: null, settleOnStop: false });
+
+  useEffect(() => {
+    const track = projectsRailRef.current;
+    const rail = track?.parentElement;
+    if (!track || !rail) return;
+    const motion = projectMotionRef.current;
+    const minX = () => Math.min(0, rail.clientWidth - track.scrollWidth);
+    const settleOnNearestProject = () => {
+      const center = rail.clientWidth / 2 - motion.x;
+      const slides = Array.from(track.querySelectorAll<HTMLElement>("[data-project-index]"));
+      const nearest = slides.reduce((best, slide) => {
+        const distance = Math.abs(slide.offsetLeft + slide.offsetWidth / 2 - center);
+        return distance < best.distance ? { index: Number(slide.dataset["projectIndex"]), distance } : best;
+      }, { index: activeProjectIndex, distance: Number.POSITIVE_INFINITY });
+      setActiveProjectIndex((current) => current === nearest.index ? current : nearest.index);
+    };
+    const animate = (time: number) => {
+      motion.frame = 0;
+      const dt = motion.lastTime ? Math.min(.05, (time - motion.lastTime) / 1000) : 1 / 60;
+      motion.lastTime = time;
+      let moving = false;
+
+      if (!motion.drag) {
+        if (motion.target !== null) {
+          motion.x += (motion.target - motion.x) * Math.min(1, dt * 6);
+          if (Math.abs(motion.target - motion.x) < .5) {
+            motion.x = motion.target;
+            motion.target = null;
+          } else moving = true;
+        } else if (Math.abs(motion.velocity) > 5) {
+          motion.x += motion.velocity * dt;
+          motion.velocity *= Math.exp(-dt * 4);
+          moving = true;
+        } else motion.velocity = 0;
+
+        const boundary = minX();
+        if (motion.x > 0) {
+          if (motion.x < .5) motion.x = 0;
+          else {
+            motion.x += (0 - motion.x) * Math.min(1, dt * 10);
+            moving = true;
+          }
+        } else if (motion.x < boundary) {
+          if (boundary - motion.x < .5) motion.x = boundary;
+          else {
+            motion.x += (boundary - motion.x) * Math.min(1, dt * 10);
+            moving = true;
+          }
+        }
+      }
+
+      track.style.transform = `translate3d(${motion.x.toFixed(2)}px, 0, 0)`;
+      if (moving || motion.drag) motion.frame = requestAnimationFrame(animate);
+      else {
+        motion.lastTime = 0;
+        if (motion.settleOnStop) {
+          motion.settleOnStop = false;
+          settleOnNearestProject();
+        }
+      }
+    };
+    const kick = () => {
+      if (!motion.frame) motion.frame = requestAnimationFrame(animate);
+    };
+    projectKickRef.current = kick;
+    const resizeObserver = new ResizeObserver(() => {
+      if (motion.drag) return;
+      const activeSlide = track.querySelector<HTMLElement>(".project-slide.is-active");
+      const desired = activeSlide ? rail.clientWidth / 2 - (activeSlide.offsetLeft + activeSlide.offsetWidth / 2) : motion.x;
+      motion.target = Math.max(minX(), Math.min(0, desired));
+      kick();
+    });
+    resizeObserver.observe(rail);
+    return () => {
+      resizeObserver.disconnect();
+      projectKickRef.current = () => {};
+      if (motion.frame) cancelAnimationFrame(motion.frame);
+    };
+  }, []);
 
   useEffect(() => {
     const section = processSectionRef.current;
@@ -772,13 +858,21 @@ function Index() {
     const activeSlide = track?.querySelector<HTMLElement>(`[data-project-index="${activeProjectIndex}"]`);
     if (!rail || !activeSlide) return;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const motion = projectMotionRef.current;
     let fallback = 0;
     const alignActive = () => {
-      if (projectNativeScrollRef.current) return;
-      const railRect = rail.getBoundingClientRect();
-      const slideRect = activeSlide.getBoundingClientRect();
-      const slideCenter = rail.scrollLeft + slideRect.left - railRect.left + slideRect.width / 2;
-      rail.scrollTo({ left: slideCenter - rail.clientWidth / 2, behavior: reduceMotion ? "auto" : "smooth" });
+      const minimum = Math.min(0, rail.clientWidth - track!.scrollWidth);
+      const target = Math.max(minimum, Math.min(0, rail.clientWidth / 2 - (activeSlide.offsetLeft + activeSlide.offsetWidth / 2)));
+      motion.velocity = 0;
+      motion.settleOnStop = false;
+      if (reduceMotion) {
+        motion.x = target;
+        motion.target = null;
+        track!.style.transform = `translate3d(${target.toFixed(2)}px, 0, 0)`;
+        return;
+      }
+      motion.target = target;
+      projectKickRef.current();
     };
     const finishExpansion = (event: TransitionEvent) => {
       if (event.propertyName !== "flex-basis") return;
@@ -807,12 +901,6 @@ function Index() {
       if (now - projectWheelCooldownRef.current < pause) return;
       projectWheelCooldownRef.current = now;
       projectAutoTouchedRef.current = true;
-      projectNativeScrollRef.current = false;
-      projectProgrammaticScrollRef.current = true;
-      window.clearTimeout(projectProgrammaticScrollTimerRef.current);
-      projectProgrammaticScrollTimerRef.current = window.setTimeout(() => {
-        projectProgrammaticScrollRef.current = false;
-      }, 1400);
       setActiveProjectIndex((index) => Math.max(0, Math.min(portfolioProjects.length - 1, index + direction)));
     };
     rail.addEventListener("wheel", handleWheel, { passive: false });
@@ -821,41 +909,12 @@ function Index() {
 
   const moveProject = (direction: number) => {
     projectAutoTouchedRef.current = true;
-    projectNativeScrollRef.current = false;
-    projectProgrammaticScrollRef.current = true;
-    window.clearTimeout(projectProgrammaticScrollTimerRef.current);
-    projectProgrammaticScrollTimerRef.current = window.setTimeout(() => {
-      projectProgrammaticScrollRef.current = false;
-    }, 1400);
     setActiveProjectIndex((index) => (index + direction + portfolioProjects.length) % portfolioProjects.length);
   };
 
   const selectProject = (index: number) => {
     projectAutoTouchedRef.current = true;
-    projectNativeScrollRef.current = false;
-    projectProgrammaticScrollRef.current = true;
-    window.clearTimeout(projectProgrammaticScrollTimerRef.current);
-    projectProgrammaticScrollTimerRef.current = window.setTimeout(() => {
-      projectProgrammaticScrollRef.current = false;
-    }, 1400);
     setActiveProjectIndex(index);
-  };
-
-  const syncProjectIndexFromRail = (rail: HTMLDivElement) => {
-    if (projectProgrammaticScrollRef.current) {
-      projectNativeScrollRef.current = false;
-      return;
-    }
-    const railRect = rail.getBoundingClientRect();
-    const center = railRect.left + rail.clientWidth / 2;
-    const slides = Array.from(rail.querySelectorAll<HTMLElement>("[data-project-index]"));
-    const nearest = slides.reduce((best, slide) => {
-      const rect = slide.getBoundingClientRect();
-      const distance = Math.abs(rect.left + rect.width / 2 - center);
-      return distance < best.distance ? { index: Number(slide.dataset["projectIndex"]), distance } : best;
-    }, { index: activeProjectIndex, distance: Number.POSITIVE_INFINITY });
-    projectNativeScrollRef.current = false;
-    setActiveProjectIndex((current) => nearest.index === current ? current : nearest.index);
   };
 
   const openBriefing = (plan?: BriefingPlan) => {
@@ -1058,23 +1117,67 @@ function Index() {
             className="projects-rail"
             role="region"
             aria-label="Projetos do portfólio. Arraste para os lados ou use as setas."
-            onPointerDown={() => {
+            onPointerDown={(event: ReactPointerEvent<HTMLDivElement>) => {
+              if (event.button > 0) return;
+              const track = projectsRailRef.current;
+              if (!track) return;
+              const motion = projectMotionRef.current;
+              if (motion.frame) cancelAnimationFrame(motion.frame);
+              motion.frame = 0;
+              motion.target = null;
+              motion.velocity = 0;
+              motion.drag = { pointerId: event.pointerId, startX: event.clientX, originX: motion.x, lastTime: performance.now(), moved: 0, velocity: 0 };
               projectAutoTouchedRef.current = true;
-              projectProgrammaticScrollRef.current = false;
-              window.clearTimeout(projectProgrammaticScrollTimerRef.current);
+              event.currentTarget.classList.add("is-drag");
+              try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* fallback: retain pointer events on the rail */ }
             }}
-            onScroll={(event) => {
-              if (projectProgrammaticScrollRef.current) return;
-              projectNativeScrollRef.current = true;
-              const rail = event.currentTarget;
-              window.clearTimeout(projectScrollTimerRef.current);
-              projectScrollTimerRef.current = window.setTimeout(() => {
-                syncProjectIndexFromRail(rail);
-              }, 260);
+            onPointerMove={(event: ReactPointerEvent<HTMLDivElement>) => {
+              const motion = projectMotionRef.current;
+              const drag = motion.drag;
+              const track = projectsRailRef.current;
+              if (!drag || !track || drag.pointerId !== event.pointerId) return;
+              const now = performance.now();
+              let nextX = drag.originX + event.clientX - drag.startX;
+              const minimum = Math.min(0, event.currentTarget.clientWidth - track.scrollWidth);
+              if (nextX > 0) nextX *= .35;
+              else if (nextX < minimum) nextX = minimum + (nextX - minimum) * .35;
+              drag.velocity = (nextX - motion.x) / Math.max(.008, (now - drag.lastTime) / 1000) * .6 + drag.velocity * .4;
+              drag.lastTime = now;
+              drag.moved = Math.max(drag.moved, Math.abs(event.clientX - drag.startX));
+              motion.x = nextX;
+              track.style.transform = `translate3d(${nextX.toFixed(2)}px, 0, 0)`;
             }}
-            onScrollEnd={(event) => {
-              window.clearTimeout(projectScrollTimerRef.current);
-              syncProjectIndexFromRail(event.currentTarget);
+            onPointerUp={(event: ReactPointerEvent<HTMLDivElement>) => {
+              const motion = projectMotionRef.current;
+              const drag = motion.drag;
+              const track = projectsRailRef.current;
+              if (!drag || drag.pointerId !== event.pointerId) return;
+              motion.drag = null;
+              motion.velocity = Math.max(-2600, Math.min(2600, drag.velocity));
+              motion.settleOnStop = drag.moved > 6;
+              event.currentTarget.classList.remove("is-drag");
+              projectSuppressClickRef.current = true;
+              window.setTimeout(() => { projectSuppressClickRef.current = false; }, 0);
+              if (drag.moved <= 6) {
+                const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-project-index]");
+                if (target) selectProject(Number(target.dataset["projectIndex"]));
+              }
+              if (track) projectKickRef.current();
+            }}
+            onPointerCancel={(event: ReactPointerEvent<HTMLDivElement>) => {
+              const motion = projectMotionRef.current;
+              if (!motion.drag || motion.drag.pointerId !== event.pointerId) return;
+              motion.settleOnStop = motion.drag.moved > 6;
+              motion.drag = null;
+              motion.velocity = 0;
+              event.currentTarget.classList.remove("is-drag");
+              projectKickRef.current();
+            }}
+            onClickCapture={(event) => {
+              if (!projectSuppressClickRef.current) return;
+              projectSuppressClickRef.current = false;
+              event.preventDefault();
+              event.stopPropagation();
             }}
           >
             <ol className="projects-track" ref={projectsRailRef}>
@@ -1088,6 +1191,7 @@ function Index() {
                       type="button"
                       aria-expanded={isActive}
                       aria-controls={detailsId}
+                      onDragStart={(event) => event.preventDefault()}
                       onClick={() => selectProject(index)}
                       onPointerEnter={(event) => {
                         if (event.pointerType !== "mouse") return;
