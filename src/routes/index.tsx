@@ -27,21 +27,6 @@ const portfolioProjects = [
   { number: "10", name: "HALO Beauty Lab", niche: "BELEZA", descriptor: "Experiência digital para um salão de beleza.", wordmark: "HALO", theme: "halo", cover: "/portfolio-halo.webp", url: "https://halo-beauty-lab-rafael.netlify.app/" },
 ];
 
-function ContactDock() {
-  return (
-    <nav className="contact-dock" aria-label="Canais de contato">
-      <a className="contact-dock-link contact-dock-link--instagram" href="https://www.instagram.com/quebradepadrao.oficial/" target="_blank" rel="noreferrer" aria-label="Instagram Quebre o Padrão">
-        <Instagram size={19} aria-hidden="true" />
-        <span>INSTAGRAM</span>
-      </a>
-      <a className="contact-dock-link contact-dock-link--whatsapp" href="https://wa.me/5521982027149" target="_blank" rel="noreferrer" aria-label="Conversar pelo WhatsApp">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16.04 2.67A13.25 13.25 0 0 0 4.65 22.7L2.9 29.1l6.55-1.72a13.2 13.2 0 0 0 6.58 1.75h.01c7.31 0 13.26-5.95 13.26-13.26 0-3.54-1.38-6.87-3.89-9.38a13.18 13.18 0 0 0-9.37-3.82Zm0 24.2h-.01a10.98 10.98 0 0 1-5.6-1.54l-.4-.24-4.12 1.08 1.1-4.02-.26-.41a10.98 10.98 0 0 1-1.7-5.87c0-6.08 4.95-11.03 11.04-11.03 2.95 0 5.72 1.15 7.8 3.23a10.96 10.96 0 0 1 3.23 7.8c0 6.08-4.95 11-11.08 11Zm6.05-8.25c-.33-.16-1.94-.96-2.24-1.07-.3-.11-.52-.16-.74.16-.22.33-.85 1.07-1.04 1.29-.19.22-.38.25-.71.08-.33-.16-1.4-.52-2.65-1.64-.98-.87-1.64-1.94-1.83-2.27-.19-.33-.02-.5.14-.66.15-.15.33-.38.49-.57.16-.19.22-.33.33-.55.11-.22.06-.41-.03-.57-.08-.16-.74-1.78-1.01-2.44-.27-.64-.54-.55-.74-.56h-.63c-.22 0-.57.08-.87.41-.3.33-1.14 1.11-1.14 2.7 0 1.59 1.17 3.12 1.34 3.34.16.22 2.3 3.5 5.56 4.9.78.34 1.38.54 1.85.69.78.25 1.49.21 2.05.13.63-.09 1.95-.8 2.22-1.57.27-.77.27-1.43.19-1.57-.08-.14-.3-.22-.63-.38Z" /></svg>
-        <span>WHATSAPP</span>
-      </a>
-    </nav>
-  );
-}
-
 const servicePlans = [
   {
     number: "01",
@@ -1311,7 +1296,22 @@ function Index() {
       <PortfolioStories />
       <ProjectGuarantee openBriefing={() => openBriefing()} />
       <FaqAssistant />
-      <ContactDock />
+      <footer className="site-footer">
+        <div className="site-footer-brand">
+          <a className="site-footer-mark" href="#top" aria-label="Rafael Fonseca, voltar ao início">RF<span>/</span></a>
+          <span>ESTRATÉGIA · DESIGN · PRESENÇA DIGITAL</span>
+        </div>
+        <nav className="site-footer-contact" aria-label="Canais de contato">
+          <a href="https://www.instagram.com/quebradepadrao.oficial/" target="_blank" rel="noreferrer" aria-label="Instagram Quebre o Padrão">
+            <Instagram size={16} aria-hidden="true" /><span>INSTAGRAM</span>
+          </a>
+          <a href="https://wa.me/5521982027149" target="_blank" rel="noreferrer" aria-label="Conversar pelo WhatsApp">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16.04 2.67A13.25 13.25 0 0 0 4.65 22.7L2.9 29.1l6.55-1.72a13.2 13.2 0 0 0 6.58 1.75h.01c7.31 0 13.26-5.95 13.26-13.26 0-3.54-1.38-6.87-3.89-9.38a13.18 13.18 0 0 0-9.37-3.82Zm0 24.2h-.01a10.98 10.98 0 0 1-5.6-1.54l-.4-.24-4.12 1.08 1.1-4.02-.26-.41a10.98 10.98 0 0 1-1.7-5.87c0-6.08 4.95-11.03 11.04-11.03 2.95 0 5.72 1.15 7.8 3.23a10.96 10.96 0 0 1 3.23 7.8c0 6.08-4.95 11-11.08 11Zm6.05-8.25c-.33-.16-1.94-.96-2.24-1.07-.3-.11-.52-.16-.74.16-.22.33-.85 1.07-1.04 1.29-.19.22-.38.25-.71.08-.33-.16-1.4-.52-2.65-1.64-.98-.87-1.64-1.94-1.83-2.27-.19-.33-.02-.5.14-.66.15-.15.33-.38.49-.57.11-.22.22-.33.33-.55.11-.22.06-.41-.03-.57-.08-.16-.74-1.78-1.01-2.44-.27-.64-.54-.55-.74-.56h-.63c-.22 0-.57.08-.87.41-.3.33-1.14 1.11-1.14 2.7 0 1.59 1.17 3.12 1.34 3.34.16.22 2.3 3.5 5.56 4.9.78.34 1.38.54 1.85.69.78.25 1.49.21 2.05.13.63-.09 1.95-.8 2.22-1.57.27-.77.27-1.43.19-1.57-.08-.14-.3-.22-.63-.38Z" /></svg>
+            <span>WHATSAPP</span>
+          </a>
+        </nav>
+        <small>© {new Date().getFullYear()} RAFAEL FONSECA. TODOS OS DIREITOS RESERVADOS.</small>
+      </footer>
     </main>
   );
 }
