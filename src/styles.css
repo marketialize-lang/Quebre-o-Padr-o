@@ -612,6 +612,7 @@ button { -webkit-tap-highlight-color: transparent; }
 @media (min-width: 1200px) and (min-height: 760px) {
   .hero-main { grid-template-columns: minmax(0, 1.16fr) minmax(360px, .84fr); }
   .portrait-wrap { min-height: 0; }
+  .portrait { object-position: center 8%; }
 }
 @media (max-width: 900px) {
   .portfolio-stories-shell { grid-template-columns: minmax(0, 1fr) minmax(260px, .8fr); gap: 26px; min-height: 620px; }
@@ -864,18 +865,18 @@ button { -webkit-tap-highlight-color: transparent; }
 .faq-assistant-note { max-width: 430px; margin: 14px 0 0; color: #777168; font: 600 9px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .065em; text-transform: uppercase; }
 .faq-chat { display: flex; min-width: 0; min-height: 570px; flex-direction: column; padding: 0 20px 14px; color: var(--paper); background: #171716; border: 1px solid rgba(17,17,17,.18); box-shadow: 0 24px 70px -48px rgba(17,17,17,.65); }
 .faq-chat-topbar { display: flex; min-height: 76px; align-items: center; gap: 12px; border-bottom: 1px solid rgba(244,241,234,.13); }
-.faq-chat-avatar { display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; border: 1px solid rgba(255,59,31,.48); border-radius: 50%; color: var(--paper); font-size: 11px; font-weight: 850; letter-spacing: -.08em; }
-.faq-chat-avatar span, .faq-chat-message-mark span { color: var(--accent); }
+.faq-chat-avatar { width: 38px; height: 38px; flex: 0 0 auto; overflow: hidden; border: 1px solid rgba(255,59,31,.48); border-radius: 50%; background: #e52010; }
+.faq-chat-avatar img, .faq-chat-message-mark img { display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; object-position: center 30%; }
 .faq-chat-identity { display: grid; gap: 5px; min-width: 0; }
 .faq-chat-identity strong { font-size: 13px; font-weight: 700; }
 .faq-chat-identity small { overflow: hidden; color: rgba(244,241,234,.52); font: 600 7px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; text-overflow: ellipsis; white-space: nowrap; }
 .faq-chat-mark { display: grid; width: 29px; height: 29px; margin-left: auto; place-items: center; border: 1px solid rgba(255,59,31,.4); color: var(--accent); font: 700 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .faq-chat-messages { display: flex; min-height: 265px; max-height: 340px; flex: 1 1 auto; flex-direction: column; gap: 13px; overflow-y: auto; padding: 22px 2px 18px; scrollbar-color: rgba(244,241,234,.25) transparent; }
 .faq-chat-message { display: flex; max-width: 91%; align-items: flex-start; gap: 8px; }
-.faq-chat-message p { margin: 0; padding: 12px 14px; border: 1px solid rgba(244,241,234,.12); background: rgba(244,241,234,.055); color: rgba(244,241,234,.87); font-size: 12px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.faq-chat-message p { margin: 0; padding: 12px 14px; border: 1px solid rgba(244,241,234,.12); background: rgba(244,241,234,.055); color: rgba(244,241,234,.87); font-family: var(--font-sans, "Inter Tight", Inter, system-ui, sans-serif); font-size: 13px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .faq-chat-message.is-user { align-self: flex-end; }
 .faq-chat-message.is-user p { border-color: color-mix(in srgb, var(--accent) 45%, transparent); background: color-mix(in srgb, var(--accent) 13%, #171716); color: var(--paper); }
-.faq-chat-message-mark { display: grid; width: 23px; height: 23px; flex: 0 0 auto; place-items: center; border: 1px solid rgba(255,59,31,.38); border-radius: 50%; color: var(--paper); font-size: 8px; font-weight: 850; }
+.faq-chat-message-mark { display: block; width: 23px; height: 23px; flex: 0 0 auto; overflow: hidden; border: 1px solid rgba(255,59,31,.38); border-radius: 50%; background: #e52010; }
 .faq-chat-message.is-typing { align-items: center; padding: 8px 0 8px 31px; }
 .faq-chat-message.is-typing span { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: faq-chat-dot .9s ease-in-out infinite alternate; }
 .faq-chat-message.is-typing span:nth-child(2) { animation-delay: .15s; }
@@ -907,7 +908,7 @@ button { -webkit-tap-highlight-color: transparent; }
   .faq-chat { min-height: 460px; padding: 0 13px 12px; }
   .faq-chat-messages { min-height: 190px; max-height: 270px; padding-top: 17px; }
   .faq-chat-message { max-width: 96%; }
-  .faq-chat-message p { padding: 10px 11px; font-size: 11px; }
+  .faq-chat-message p { padding: 10px 11px; font-size: 12px; }
   .faq-chat-suggestions button { min-height: 36px; font-size: 8px; }
   .faq-chat-form { min-height: 48px; padding-left: 11px; }
   .faq-chat-form input { font-size: 11px; }

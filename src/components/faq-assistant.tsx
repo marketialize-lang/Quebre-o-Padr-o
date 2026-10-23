@@ -3,6 +3,14 @@ import { askFaqAssistant } from "@/utils/faq-assistant.functions";
 
 type Message = { role: "user" | "assistant"; content: string };
 
+function formatAssistantText(content: string) {
+  return content
+    .replace(/\*\*(.+?)\*\*/gs, "$1")
+    .replace(/__(.+?)__/gs, "$1")
+    .replace(/(^|\s)\*(\S(?:.*?\S)?)\*(?=\s|$)/g, "$1$2")
+    .replace(/(^|\n)[\t ]*[-*][\t ]+(?=\S)/g, "$1• ");
+}
+
 const suggestions = [
   "Quais são os planos e valores?",
   "Como funciona o pagamento?",
@@ -58,7 +66,9 @@ export function FaqAssistant() {
 
         <div className="faq-chat" aria-label="Conversa com a assistente virtual">
           <div className="faq-chat-topbar">
-            <div className="faq-chat-avatar" aria-hidden="true">RF<span>.</span></div>
+            <div className="faq-chat-avatar" role="img" aria-label="Foto de Rafael Fonseca">
+              <img src="/rafael-fonseca-hero.jpg" alt="" />
+            </div>
             <div className="faq-chat-identity"><strong>Assistente virtual</strong><small>QUEBRE O PADRÃO · DÚVIDAS SOBRE O PROJETO</small></div>
             <span className="faq-chat-mark" aria-hidden="true">IA</span>
           </div>
@@ -66,8 +76,12 @@ export function FaqAssistant() {
           <div className="faq-chat-messages" ref={messageListRef} role="log" aria-live="polite" aria-relevant="additions text">
             {messages.map((message, index) => (
               <div className={`faq-chat-message is-${message.role}`} key={`${message.role}-${index}`}>
-                {message.role === "assistant" && <span className="faq-chat-message-mark" aria-hidden="true">RF<span>.</span></span>}
-                <p>{message.content}</p>
+                {message.role === "assistant" && (
+                  <span className="faq-chat-message-mark" role="img" aria-label="Resposta da assistente">
+                    <img src="/rafael-fonseca-hero.jpg" alt="" />
+                  </span>
+                )}
+                <p>{message.role === "assistant" ? formatAssistantText(message.content) : message.content}</p>
               </div>
             ))}
             {isSending && <div className="faq-chat-message is-assistant is-typing" aria-label="A assistente está respondendo"><span /><span /><span /></div>}
