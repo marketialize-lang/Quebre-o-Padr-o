@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { FaqAssistant } from "@/components/faq-assistant";
-import { BriefingForm } from "@/components/briefing-form";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Pause, Play, ShieldCheck, Shuffle } from "lucide-react";
+import { BriefingForm, type BriefingPlan } from "@/components/briefing-form";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Instagram, Pause, Play, ShieldCheck, Shuffle } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 
 export const Route = createFileRoute("/")({
@@ -26,6 +26,21 @@ const portfolioProjects = [
   { number: "09", name: "Método Prisma", niche: "EDUCAÇÃO DIGITAL", descriptor: "Página de apresentação para um infoproduto.", wordmark: "PRISMA", theme: "prisma", cover: "/portfolio-prisma.webp", url: "https://metodo-prisma-rafael.netlify.app/" },
   { number: "10", name: "HALO Beauty Lab", niche: "BELEZA", descriptor: "Experiência digital para um salão de beleza.", wordmark: "HALO", theme: "halo", cover: "/portfolio-halo.webp", url: "https://halo-beauty-lab-rafael.netlify.app/" },
 ];
+
+function ContactDock() {
+  return (
+    <nav className="contact-dock" aria-label="Canais de contato">
+      <a className="contact-dock-link contact-dock-link--instagram" href="https://www.instagram.com/quebradepadrao.oficial/" target="_blank" rel="noreferrer" aria-label="Instagram Quebre o Padrão">
+        <Instagram size={19} aria-hidden="true" />
+        <span>INSTAGRAM</span>
+      </a>
+      <a className="contact-dock-link contact-dock-link--whatsapp" href="https://wa.me/5521982027149" target="_blank" rel="noreferrer" aria-label="Conversar pelo WhatsApp">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16.04 2.67A13.25 13.25 0 0 0 4.65 22.7L2.9 29.1l6.55-1.72a13.2 13.2 0 0 0 6.58 1.75h.01c7.31 0 13.26-5.95 13.26-13.26 0-3.54-1.38-6.87-3.89-9.38a13.18 13.18 0 0 0-9.37-3.82Zm0 24.2h-.01a10.98 10.98 0 0 1-5.6-1.54l-.4-.24-4.12 1.08 1.1-4.02-.26-.41a10.98 10.98 0 0 1-1.7-5.87c0-6.08 4.95-11.03 11.04-11.03 2.95 0 5.72 1.15 7.8 3.23a10.96 10.96 0 0 1 3.23 7.8c0 6.08-4.95 11-11.08 11Zm6.05-8.25c-.33-.16-1.94-.96-2.24-1.07-.3-.11-.52-.16-.74.16-.22.33-.85 1.07-1.04 1.29-.19.22-.38.25-.71.08-.33-.16-1.4-.52-2.65-1.64-.98-.87-1.64-1.94-1.83-2.27-.19-.33-.02-.5.14-.66.15-.15.33-.38.49-.57.16-.19.22-.33.33-.55.11-.22.06-.41-.03-.57-.08-.16-.74-1.78-1.01-2.44-.27-.64-.54-.55-.74-.56h-.63c-.22 0-.57.08-.87.41-.3.33-1.14 1.11-1.14 2.7 0 1.59 1.17 3.12 1.34 3.34.16.22 2.3 3.5 5.56 4.9.78.34 1.38.54 1.85.69.78.25 1.49.21 2.05.13.63-.09 1.95-.8 2.22-1.57.27-.77.27-1.43.19-1.57-.08-.14-.3-.22-.63-.38Z" /></svg>
+        <span>WHATSAPP</span>
+      </a>
+    </nav>
+  );
+}
 
 const servicePlans = [
   {
@@ -245,7 +260,7 @@ const guaranteeConcerns = [
 
 type GuaranteePlacement = { index: number; side: "client" | "commitment"; phase: "falling" | "dust" | "settled" };
 
-function ProjectGuarantee() {
+function ProjectGuarantee({ openBriefing }: { openBriefing: () => void }) {
   const sectionRef = useRef<HTMLElement>(null);
   const scaleRef = useRef<SVGSVGElement>(null);
   const dragRef = useRef<{ pointerId: number; index: number; x: number; y: number; moved: boolean } | null>(null);
@@ -387,12 +402,12 @@ function ProjectGuarantee() {
           </div>
         </div>
         <div className="project-guarantee-action">
-          <a href="#briefing">VAMOS ALINHAR SEU PROJETO <ArrowUpRight size={15} aria-hidden="true" /></a>
+          <a href="#briefing" onClick={(event) => { event.preventDefault(); openBriefing(); }}>VAMOS ALINHAR SEU PROJETO <ArrowUpRight size={15} aria-hidden="true" /></a>
           <span>Escopo e condições apresentados no briefing.</span>
         </div>
       </div>
 
-      <footer className="project-guarantee-footer"><span>RAFAEL FONSECA · ESCOPO ALINHADO, ENTREGA E SUPORTE</span><a href="#briefing">CONVERSAR SOBRE MEU PROJETO <ArrowUpRight size={13} /></a></footer>
+      <footer className="project-guarantee-footer"><span>RAFAEL FONSECA · ESCOPO ALINHADO, ENTREGA E SUPORTE</span><a href="#briefing" onClick={(event) => { event.preventDefault(); openBriefing(); }}>CONVERSAR SOBRE MEU PROJETO <ArrowUpRight size={13} /></a></footer>
     </section>
   );
 }
@@ -413,6 +428,8 @@ function Index() {
   const [activeStoryStep, setActiveStoryStep] = useState(0);
   const [activeProjectIndex, setActiveProjectIndex] = useState(0);
   const [pricingMode, setPricingMode] = useState<"investment" | "timeline">("investment");
+  const [briefingOpen, setBriefingOpen] = useState(false);
+  const [briefingPlan, setBriefingPlan] = useState<BriefingPlan | undefined>();
   const [fitAnswers, setFitAnswers] = useState<boolean[]>([]);
   const [fitDragX, setFitDragX] = useState(0);
   const [fitExitDirection, setFitExitDirection] = useState<"yes" | "no" | null>(null);
@@ -817,6 +834,12 @@ function Index() {
     setActiveProjectIndex(index);
   };
 
+  const openBriefing = (plan?: BriefingPlan) => {
+    setBriefingPlan(plan);
+    setBriefingOpen(true);
+    window.setTimeout(() => document.getElementById("briefing")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }), 0);
+  };
+
   const answerFit = (isMatch: boolean) => {
     if (fitExitTimerRef.current || fitAnswers.length >= fitProfiles.length) return;
     setFitExitDirection(isMatch ? "yes" : "no");
@@ -1180,21 +1203,21 @@ function Index() {
                     <span>Até</span><PriceOdometer value={plan.timeline.days} className="pricing-timeline-odometer" /><span>{plan.timeline.label}</span>
                   </p>
                 </div>
-                <a className="pricing-card-link" href="#briefing">
+                <a className="pricing-card-link" href="#briefing" onClick={(event) => { event.preventDefault(); openBriefing(plan.name as BriefingPlan); }}>
                   Entenda a próxima etapa <ArrowUpRight size={16} aria-hidden="true" />
                 </a>
               </article>
             ))}
           </div>
 
-          <aside className="pricing-briefing pricing-briefing--form" id="briefing">
+          <aside className="pricing-briefing pricing-briefing--form" id="briefing" hidden={!briefingOpen}>
             <span className="pricing-briefing-index">ANTES DE COMEÇAR</span>
             <div>
               <h4>Todo projeto começa com um briefing completo.</h4>
               <p>É nessa etapa que vamos entender seu negócio, seus objetivos e o conteúdo necessário para estruturar a página.</p>
             </div>
             <span className="pricing-briefing-mark" aria-hidden="true">RF<span>.</span></span>
-            <BriefingForm />
+            {briefingOpen && <BriefingForm key={briefingPlan ?? "generic"} initialPlan={briefingPlan} />}
           </aside>
           <div className="pricing-footer"><span>RAFAEL FONSECA · ESTRATÉGIA, DESIGN E PRESENÇA DIGITAL</span><a href="#top">VOLTAR AO INÍCIO <ArrowUpRight size={13} /></a></div>
         </div>
@@ -1231,7 +1254,7 @@ function Index() {
                 })}
               </div>
             ) : (
-              <div className="fit-result"><span>SEU RESULTADO</span><strong>{fitScore}<small>%</small></strong><p>{fitScore >= 70 ? "Esse tipo de projeto parece fazer sentido para você." : fitScore >= 40 ? "Alguns pontos combinam. Vamos entender melhor no briefing." : "Talvez este serviço não seja o melhor encaixe agora."}</p><a href="#briefing">CONVERSAR SOBRE MEU PROJETO <ArrowUpRight size={15} /></a><button type="button" onClick={resetFit}>REFAZER O TESTE</button></div>
+              <div className="fit-result"><span>SEU RESULTADO</span><strong>{fitScore}<small>%</small></strong><p>{fitScore >= 70 ? "Esse tipo de projeto parece fazer sentido para você." : fitScore >= 40 ? "Alguns pontos combinam. Vamos entender melhor no briefing." : "Talvez este serviço não seja o melhor encaixe agora."}</p><a href="#briefing" onClick={(event) => { event.preventDefault(); openBriefing(); }}>CONVERSAR SOBRE MEU PROJETO <ArrowUpRight size={15} /></a><button type="button" onClick={resetFit}>REFAZER O TESTE</button></div>
             )}
             {fitAnswers.length < fitProfiles.length && <div className="fit-controls"><button type="button" className="fit-no" aria-label="Não sou eu" disabled={fitExitDirection !== null} onClick={() => answerFit(false)}>×</button><button type="button" className="fit-yes" aria-label="Sou eu" disabled={fitExitDirection !== null} onClick={() => answerFit(true)}>✓</button><button type="button" className="fit-undo" disabled={!fitAnswers.length || fitExitDirection !== null} onClick={undoFit}>↶ DESFAZER</button></div>}
           </div>
@@ -1262,7 +1285,7 @@ function Index() {
               ))}
             </div>
             <p className="process-active-description" aria-live="polite">{processSteps[activeProcessStep]!.description}</p>
-            <a className="process-cta" href="#briefing">COMEÇAR PELO BRIEFING <ArrowUpRight size={15} /></a>
+            <a className="process-cta" href="#briefing" onClick={(event) => { event.preventDefault(); openBriefing(); }}>COMEÇAR PELO BRIEFING <ArrowUpRight size={15} /></a>
           </div>
           <div className="process-visual" aria-live="polite">
             <span className="process-glow" aria-hidden="true" />
@@ -1283,11 +1306,12 @@ function Index() {
             <span className="process-visual-caption">UM PROJETO, QUATRO ETAPAS CLARAS</span>
           </div>
         </div>
-        <div className="process-footer"><span>RAFAEL FONSECA · ESTRATÉGIA, DESIGN E PRESENÇA DIGITAL</span><a href="#briefing">VAMOS CONVERSAR <ArrowUpRight size={13} /></a></div>
+        <div className="process-footer"><span>RAFAEL FONSECA · ESTRATÉGIA, DESIGN E PRESENÇA DIGITAL</span><a href="#briefing" onClick={(event) => { event.preventDefault(); openBriefing(); }}>VAMOS CONVERSAR <ArrowUpRight size={13} /></a></div>
       </section>
       <PortfolioStories />
-      <ProjectGuarantee />
+      <ProjectGuarantee openBriefing={() => openBriefing()} />
       <FaqAssistant />
+      <ContactDock />
     </main>
   );
 }

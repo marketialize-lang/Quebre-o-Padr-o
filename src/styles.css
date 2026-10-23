@@ -294,6 +294,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .pricing-card-featured .pricing-card-link:hover, .pricing-card-featured .pricing-card-link:focus-visible { color: var(--paper); background: transparent; }
 .pricing-card-featured .pricing-card-link:hover svg, .pricing-card-featured .pricing-card-link:focus-visible svg { color: var(--accent); }
 .pricing-briefing { display: grid; grid-template-columns: 1fr minmax(0, 2.5fr) auto; gap: 28px; align-items: center; margin-top: clamp(32px, 5vw, 56px); padding: clamp(24px, 4vw, 42px); color: var(--paper); background: #171716; }
+.pricing-briefing[hidden] { display: none; }
 .pricing-briefing-index { align-self: start; color: var(--accent); font: 700 8px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
 .pricing-briefing h4 { max-width: 610px; margin: 0; font-size: clamp(20px, 2.7vw, 32px); font-weight: 700; letter-spacing: -.055em; line-height: 1.05; }
 .pricing-briefing p { max-width: 600px; margin: 12px 0 0; color: rgba(244,241,234,.68); font-size: 13px; line-height: 1.55; }
@@ -602,6 +603,12 @@ button { -webkit-tap-highlight-color: transparent; }
 }
 
 
+@media (min-width: 1200px) {
+  .project-slide { flex-basis: 300px; height: 380px; }
+  .project-slide.is-active { flex-basis: 620px; }
+  .project-poster { width: 300px; }
+  .project-details { inset-inline-start: 300px; width: 320px; }
+}
 @media (min-width: 1200px) and (min-height: 760px) {
   .hero-main { grid-template-columns: minmax(0, 1.16fr) minmax(360px, .84fr); }
   .portrait-wrap { min-height: 0; }
@@ -1002,6 +1009,14 @@ div[id*="lovable"],
 .painel-menu-mobile { position: fixed; right: 12px; bottom: 12px; left: 12px; z-index: 20; display: flex; gap: 8px; padding: 8px; border: 1px solid var(--line); background: var(--paper); box-shadow: 0 8px 28px rgba(17,17,17,.14); }
 .painel-menu-mobile button { flex: 1; min-height: 42px; border: 1px solid rgba(17,17,17,.35); border-radius: 999px; color: var(--ink); background: transparent; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
 .painel-menu-mobile button:active { color: var(--paper); background: var(--ink); }
+.contact-dock { position: fixed; z-index: 45; right: clamp(14px, 2.2vw, 28px); bottom: max(18px, env(safe-area-inset-bottom)); display: grid; gap: 9px; }
+.contact-dock-link { position: relative; display: grid; width: 48px; height: 48px; place-items: center; border: 1px solid rgba(244,241,234,.28); border-radius: 50%; color: var(--paper); background: #171716; box-shadow: 0 8px 24px rgba(17,17,17,.2); transition: transform .2s ease, color .2s ease, background .2s ease, border-color .2s ease; }
+.contact-dock-link:hover, .contact-dock-link:focus-visible { transform: translateY(-2px); color: #171716; background: var(--accent); border-color: var(--accent); outline: none; }
+.contact-dock-link svg { width: 19px; height: 19px; }
+.contact-dock-link--whatsapp svg { width: 21px; height: 21px; fill: currentColor; }
+.contact-dock-link span { position: absolute; right: calc(100% + 10px); padding: 8px 10px; border: 1px solid rgba(244,241,234,.16); color: var(--paper); background: #171716; font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .1em; opacity: 0; pointer-events: none; transform: translateX(4px); transition: opacity .18s ease, transform .18s ease; }
+.contact-dock-link:hover span, .contact-dock-link:focus-visible span { opacity: 1; transform: translateX(0); }
+.contact-dock-link:focus-visible { box-shadow: 0 0 0 3px rgba(255,59,31,.3); }
 @media (min-width: 640px) {
   .painel-indicadores { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .painel-detalhes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
