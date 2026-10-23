@@ -612,7 +612,7 @@ button { -webkit-tap-highlight-color: transparent; }
 @media (min-width: 1200px) and (min-height: 760px) {
   .hero-main { grid-template-columns: minmax(0, 1.16fr) minmax(360px, .84fr); }
   .portrait-wrap { min-height: 0; }
-  .portrait { object-position: center 8%; }
+  .portrait { object-position: center top; }
 }
 @media (max-width: 900px) {
   .portfolio-stories-shell { grid-template-columns: minmax(0, 1fr) minmax(260px, .8fr); gap: 26px; min-height: 620px; }
