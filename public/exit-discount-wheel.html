@@ -55,11 +55,11 @@ html,body{margin:0;min-height:100%;background:#111}body{display:block;overflow-x
     --upw-font: Inter, Arial, sans-serif;
     --upw-text: Inter, Arial, sans-serif;
     position: relative; isolation: isolate; box-sizing: border-box; display: flex; align-items: center; width: 100%; min-height: 640px; overflow: hidden;
-    padding: clamp(44px, 5vw, 72px) clamp(16px, 4vw, 48px); color: var(--upw-ink); font: 400 16px/1.45 var(--upw-text); text-align: left; -webkit-font-smoothing: antialiased;
+    padding: clamp(44px, 5vw, 72px) clamp(16px, 4vw, 48px); color: #f4f1ea; font: 400 16px/1.45 var(--upw-text); text-align: left; -webkit-font-smoothing: antialiased;
     background: radial-gradient(62% 80% at 76% 54%, rgba(255,59,31,.13), transparent 72%), linear-gradient(145deg, #171716, #111);
   }
   .upw-rd *, .upw-rd *::before, .upw-rd *::after { box-sizing: border-box; }
-  .upw-rd::before { content: ''; position: absolute; left: 74%; top: 54%; z-index: -2; width: 260vmax; height: 260vmax; transform: translate(-50%, -50%); background: repeating-conic-gradient(from 0deg, rgba(255, 244, 214, .2) 0 6deg, transparent 6deg 12deg);
+  .upw-rd::before { content: ''; position: absolute; left: 74%; top: 54%; z-index: -2; width: 260vmax; height: 260vmax; transform: translate(-50%, -50%); background: repeating-conic-gradient(from 0deg, rgba(244, 241, 234, .06) 0 6deg, transparent 6deg 12deg);
     -webkit-mask-image: radial-gradient(circle, #000 10%, transparent 46%); mask-image: radial-gradient(circle, #000 10%, transparent 46%); }
   .upw-rd::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .09; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
   .upw-rd__in { position: relative; display: grid; grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr); align-items: center; gap: clamp(20px, 3vw, 40px); width: 100%; max-width: 1200px; margin: 0 auto; }
