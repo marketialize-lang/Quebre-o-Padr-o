@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { FaqAssistant } from "@/components/faq-assistant";
 import { BriefingForm, type BriefingPlan } from "@/components/briefing-form";
+import { ExitDiscountPopup } from "@/components/exit-discount-popup";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Instagram, Pause, Play, ShieldCheck, Shuffle } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 
@@ -1312,6 +1313,7 @@ function Index() {
         </nav>
         <small>© {new Date().getFullYear()} RAFAEL FONSECA. TODOS OS DIREITOS RESERVADOS.</small>
       </footer>
+      <ExitDiscountPopup />
     </main>
   );
 }
