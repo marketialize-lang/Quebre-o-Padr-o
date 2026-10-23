@@ -817,38 +817,22 @@ function Index() {
     const section = projectsSectionRef.current;
     if (!section) return;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const coarsePointerQuery = window.matchMedia("(pointer: coarse)");
-    const narrowViewportQuery = window.matchMedia("(max-width: 640px)");
-    let touchDevice = coarsePointerQuery.matches || narrowViewportQuery.matches;
     let timer = 0;
     let visible = false;
     const advance = () => {
-      if (projectAutoTouchedRef.current || !visible || reduceMotion || touchDevice) return;
+      if (projectAutoTouchedRef.current || !visible || reduceMotion) return;
       setActiveProjectIndex((index) => (index + 1) % portfolioProjects.length);
       timer = window.setTimeout(advance, 2600);
-    };
-    const syncDeviceMode = () => {
-      touchDevice = coarsePointerQuery.matches || narrowViewportQuery.matches;
-      window.clearTimeout(timer);
-      if (visible && !projectAutoTouchedRef.current && !reduceMotion && !touchDevice) {
-        timer = window.setTimeout(advance, 1800);
-      }
     };
     const observer = new IntersectionObserver((entries) => {
       visible = entries[0]!.isIntersecting;
       window.clearTimeout(timer);
-      if (visible && !projectAutoTouchedRef.current && !reduceMotion && !touchDevice) timer = window.setTimeout(advance, 1800);
+      if (visible && !projectAutoTouchedRef.current && !reduceMotion) timer = window.setTimeout(advance, 1800);
     }, { threshold: 0.25 });
     observer.observe(section);
-    coarsePointerQuery.addEventListener("change", syncDeviceMode);
-    narrowViewportQuery.addEventListener("change", syncDeviceMode);
-    window.addEventListener("resize", syncDeviceMode, { passive: true });
     return () => {
       window.clearTimeout(timer);
       observer.disconnect();
-      coarsePointerQuery.removeEventListener("change", syncDeviceMode);
-      narrowViewportQuery.removeEventListener("change", syncDeviceMode);
-      window.removeEventListener("resize", syncDeviceMode);
     };
   }, []);
 
@@ -916,94 +900,6 @@ function Index() {
     projectAutoTouchedRef.current = true;
     setActiveProjectIndex(index);
   };
-
-  useEffect(() => {
-    const rail = projectsRailRef.current?.parentElement;
-    const track = projectsRailRef.current;
-    if (!rail || !track) return;
-    const motion = projectMotionRef.current;
-    const minX = () => Math.min(0, rail.clientWidth - track.scrollWidth);
-    const handleTouchStart = (event: TouchEvent) => {
-      if (event.touches.length !== 1) {
-        motion.drag = null;
-        return;
-      }
-      const touch = event.touches[0]!;
-      if (motion.frame) cancelAnimationFrame(motion.frame);
-      motion.frame = 0;
-      motion.target = null;
-      motion.velocity = 0;
-      motion.drag = { pointerId: -1, startX: touch.clientX, startY: touch.clientY, originX: motion.x, lastTime: performance.now(), moved: 0, velocity: 0, axis: null };
-      projectAutoTouchedRef.current = true;
-    };
-    const handleTouchMove = (event: TouchEvent) => {
-      const touch = event.touches[0];
-      const drag = motion.drag;
-      if (!drag || drag.pointerId !== -1 || event.touches.length !== 1) return;
-      if (!touch) return;
-      const dx = touch.clientX - drag.startX;
-      const dy = touch.clientY - drag.startY;
-      if (drag.axis === null) {
-        if (Math.max(Math.abs(dx), Math.abs(dy)) < 8) return;
-        drag.axis = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
-        if (drag.axis === "vertical") {
-          motion.drag = null;
-          return;
-        }
-      }
-      if (drag.axis !== "horizontal") return;
-      if (event.cancelable) event.preventDefault();
-      const now = performance.now();
-      let nextX = drag.originX + dx;
-      const minimum = minX();
-      if (nextX > 0) nextX *= .35;
-      else if (nextX < minimum) nextX = minimum + (nextX - minimum) * .35;
-      drag.velocity = (nextX - motion.x) / Math.max(.008, (now - drag.lastTime) / 1000) * .6 + drag.velocity * .4;
-      drag.lastTime = now;
-      drag.moved = Math.max(drag.moved, Math.abs(dx));
-      motion.x = nextX;
-      track.style.transform = `translate3d(${nextX.toFixed(2)}px, 0, 0)`;
-    };
-    const handleTouchEnd = (event: TouchEvent) => {
-      const drag = motion.drag;
-      if (!drag || drag.pointerId !== -1) return;
-      motion.drag = null;
-      if (drag.axis === "vertical") return;
-      motion.velocity = Math.max(-2600, Math.min(2600, drag.velocity));
-      motion.settleOnStop = drag.moved > 6;
-      if (drag.axis === "horizontal") {
-        projectSuppressClickRef.current = true;
-        window.setTimeout(() => { projectSuppressClickRef.current = false; }, 350);
-      } else {
-        const touch = event.changedTouches[0];
-        const target = touch && document.elementFromPoint(touch.clientX, touch.clientY)?.closest<HTMLElement>("[data-project-index]");
-        if (target) {
-          projectAutoTouchedRef.current = true;
-          setActiveProjectIndex(Number(target.dataset["projectIndex"]));
-        }
-      }
-      projectKickRef.current();
-    };
-    const handleTouchCancel = (event: TouchEvent) => {
-      const drag = motion.drag;
-      if (!drag || drag.pointerId !== -1) return;
-      const moved = drag.moved;
-      motion.drag = null;
-      motion.velocity = 0;
-      motion.settleOnStop = moved > 6;
-      projectKickRef.current();
-    };
-    rail.addEventListener("touchstart", handleTouchStart, { passive: true });
-    rail.addEventListener("touchmove", handleTouchMove, { passive: false });
-    rail.addEventListener("touchend", handleTouchEnd, { passive: true });
-    rail.addEventListener("touchcancel", handleTouchCancel, { passive: true });
-    return () => {
-      rail.removeEventListener("touchstart", handleTouchStart);
-      rail.removeEventListener("touchmove", handleTouchMove);
-      rail.removeEventListener("touchend", handleTouchEnd);
-      rail.removeEventListener("touchcancel", handleTouchCancel);
-    };
-  }, []);
 
   const openBriefing = (plan?: BriefingPlan) => {
     setBriefingPlan(plan);
@@ -1206,7 +1102,6 @@ function Index() {
             role="region"
             aria-label="Projetos do portfólio. Arraste para os lados ou use as setas."
             onPointerDown={(event: ReactPointerEvent<HTMLDivElement>) => {
-              if (event.pointerType === "touch") return;
               if (event.button > 0) return;
               const track = projectsRailRef.current;
               if (!track) return;
@@ -1221,7 +1116,6 @@ function Index() {
               try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* fallback: retain pointer events on the rail */ }
             }}
             onPointerMove={(event: ReactPointerEvent<HTMLDivElement>) => {
-              if (event.pointerType === "touch") return;
               const motion = projectMotionRef.current;
               const drag = motion.drag;
               const track = projectsRailRef.current;
@@ -1238,7 +1132,6 @@ function Index() {
               track.style.transform = `translate3d(${nextX.toFixed(2)}px, 0, 0)`;
             }}
             onPointerUp={(event: ReactPointerEvent<HTMLDivElement>) => {
-              if (event.pointerType === "touch") return;
               const motion = projectMotionRef.current;
               const drag = motion.drag;
               const track = projectsRailRef.current;
@@ -1256,7 +1149,6 @@ function Index() {
               if (track) projectKickRef.current();
             }}
             onPointerCancel={(event: ReactPointerEvent<HTMLDivElement>) => {
-              if (event.pointerType === "touch") return;
               const motion = projectMotionRef.current;
               if (!motion.drag || motion.drag.pointerId !== event.pointerId) return;
               motion.settleOnStop = motion.drag.moved > 6;
