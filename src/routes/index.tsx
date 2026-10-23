@@ -1052,6 +1052,7 @@ function Index() {
               const rail = event.currentTarget;
               window.clearTimeout(projectScrollTimerRef.current);
               projectScrollTimerRef.current = window.setTimeout(() => {
+                projectNativeScrollRef.current = false;
                 const railRect = rail.getBoundingClientRect();
                 const center = railRect.left + rail.clientWidth / 2;
                 const slides = Array.from(rail.querySelectorAll<HTMLElement>("[data-project-index]"));
