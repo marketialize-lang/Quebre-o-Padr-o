@@ -841,6 +841,23 @@ function Index() {
     setActiveProjectIndex(index);
   };
 
+  const syncProjectIndexFromRail = (rail: HTMLDivElement) => {
+    if (projectProgrammaticScrollRef.current) {
+      projectNativeScrollRef.current = false;
+      return;
+    }
+    const railRect = rail.getBoundingClientRect();
+    const center = railRect.left + rail.clientWidth / 2;
+    const slides = Array.from(rail.querySelectorAll<HTMLElement>("[data-project-index]"));
+    const nearest = slides.reduce((best, slide) => {
+      const rect = slide.getBoundingClientRect();
+      const distance = Math.abs(rect.left + rect.width / 2 - center);
+      return distance < best.distance ? { index: Number(slide.dataset["projectIndex"]), distance } : best;
+    }, { index: activeProjectIndex, distance: Number.POSITIVE_INFINITY });
+    projectNativeScrollRef.current = false;
+    setActiveProjectIndex((current) => nearest.index === current ? current : nearest.index);
+  };
+
   const openBriefing = (plan?: BriefingPlan) => {
     setBriefingPlan(plan);
     setBriefingOpen(true);
@@ -1052,17 +1069,12 @@ function Index() {
               const rail = event.currentTarget;
               window.clearTimeout(projectScrollTimerRef.current);
               projectScrollTimerRef.current = window.setTimeout(() => {
-                projectNativeScrollRef.current = false;
-                const railRect = rail.getBoundingClientRect();
-                const center = railRect.left + rail.clientWidth / 2;
-                const slides = Array.from(rail.querySelectorAll<HTMLElement>("[data-project-index]"));
-                const nearest = slides.reduce((best, slide) => {
-                  const rect = slide.getBoundingClientRect();
-                  const distance = Math.abs(rect.left + rect.width / 2 - center);
-                  return distance < best.distance ? { index: Number(slide.dataset["projectIndex"]), distance } : best;
-                }, { index: activeProjectIndex, distance: Number.POSITIVE_INFINITY });
-                setActiveProjectIndex((current) => nearest.index === current ? current : nearest.index);
-              }, 110);
+                syncProjectIndexFromRail(rail);
+              }, 260);
+            }}
+            onScrollEnd={(event) => {
+              window.clearTimeout(projectScrollTimerRef.current);
+              syncProjectIndexFromRail(event.currentTarget);
             }}
           >
             <ol className="projects-track" ref={projectsRailRef}>
@@ -1091,7 +1103,7 @@ function Index() {
                       }}
                     >
                       <span className="project-poster-topline"><span>RF / DIGITAL</span><span>{project.niche}</span></span>
-                      <img className={`project-poster-cover${project.theme === "roadster" ? " project-poster-cover-roadster" : project.theme === "henrique" ? " project-poster-cover-henrique" : project.theme === "prisma" ? " project-poster-cover-prisma" : ""}`} src={project.cover} alt="" loading={index < 3 ? "eager" : "lazy"} decoding="async" />
+                      <img className={`project-poster-cover${project.theme === "roadster" ? " project-poster-cover-roadster" : project.theme === "henrique" ? " project-poster-cover-henrique" : project.theme === "prisma" ? " project-poster-cover-prisma" : ""}`} src={project.cover} alt="" loading={Math.abs(index - activeProjectIndex) <= 2 ? "eager" : "lazy"} fetchPriority={index === activeProjectIndex ? "high" : "auto"} decoding="async" />
                       {project.theme === "roadster" && (
                         <span className="project-poster-copy">
                           <span className="project-poster-label">PÁGINA CONCEITO</span>
